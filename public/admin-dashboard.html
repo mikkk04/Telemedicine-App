@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telemedicine Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css' rel='stylesheet' />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* CORE THEME & COLOR PALETTE */
+        :root {
+            --bg-dark: #2c3038;
+            --bg-light: #353a43;
+            --text-primary-dark: #e0e0e0;
+            --text-secondary-dark: #a0a0a0;
+            --primary-accent-start: #4a90e2;
+            --primary-accent-end: #63b3ed;
+            --danger-color: #e57373;
+            --shadow-light-dark: rgba(255, 255, 255, 0.05);
+            --shadow-dark-dark: rgba(0, 0, 0, 0.5);
+
+            /* Default to dark mode variables */
+            --bg-main: var(--bg-dark);
+            --bg-secondary: var(--bg-light);
+            --text-primary: var(--text-primary-dark);
+            --text-secondary: var(--text-secondary-dark);
+            --shadow-light: var(--shadow-light-dark);
+            --shadow-dark: var(--shadow-dark-dark);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .light-mode {
+            --bg-main: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --shadow-light: rgba(255, 255, 255, 0.9);
+            --shadow-dark: rgba(0, 0, 0, 0.1);
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            background-image: var(--bg-noise);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Add noise only in dark mode */
+        :not(.light-mode) body {
+             background-image: url('data:image/svg+xml,%3Csvg width="6" height="6" viewBox="0 0 6 6" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23353a43" fill-opacity="0.4" fill-rule="evenodd"%3E%3Cpath d="M5 0h1L0 6V5zM6 5v1H5z"/%3E%3C/g%3E%3C/svg%3E');
+        }
+
+        /* NEUMORPHIC & GLASSMORPHIC STYLES */
+        .neumorphic-flat {
+            background: linear-gradient(145deg, var(--bg-secondary), var(--bg-main));
+            box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+            border-radius: 1rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .neumorphic-flat:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
+        }
+
+        .neumorphic-inset {
+            background-color: var(--bg-main);
+            box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
+            border-radius: 0.75rem;
+        }
+
+        .glassmorphic {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+        }
+        
+        .light-mode .glassmorphic {
+            background: rgba(255, 255, 255, 0.6);
+        }
+        
+        :not(.light-mode) .glassmorphic {
+             background: rgba(44, 48, 56, 0.6);
+        }
+
+        /* SIDEBAR NAVIGATION */
+        .sidebar-nav a {
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .sidebar-nav a:hover, .sidebar-nav a:hover i {
+            color: var(--text-primary);
+        }
+        .sidebar-nav .active-nav {
+            box-shadow: var(--neumorphic-shadow-inset);
+            background-color: transparent;
+        }
+        .sidebar-nav .active-nav, .sidebar-nav .active-nav .active-icon {
+            color: transparent;
+            background: linear-gradient(45deg, var(--primary-accent-start), var(--primary-accent-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            font-weight: 600;
+        }
+
+        /* CUSTOM SCROLLBAR */
+        .scrollbar-custom::-webkit-scrollbar { width: 8px; }
+        .scrollbar-custom::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            border: 2px solid var(--bg-main);
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover { background-color: #555c66; }
+
+        /* FULL CALENDAR THEME */
+        #calendar {
+            --fc-border-color: var(--border-color);
+            --fc-daygrid-event-dot-width: 8px;
+            --fc-list-event-dot-width: 10px;
+            --fc-button-bg-color: var(--bg-secondary);
+            --fc-button-text-color: var(--text-primary);
+            --fc-button-border-color: transparent;
+            --fc-button-hover-bg-color: var(--bg-main);
+            --fc-button-active-bg-color: var(--bg-main);
+        }
+        .fc .fc-toolbar-title { color: var(--text-primary); }
+        .fc .fc-daygrid-day-number { color: var(--text-secondary); }
+        .fc .fc-col-header-cell-cushion { color: var(--text-primary); }
+        .fc-event {
+            background: linear-gradient(45deg, var(--primary-accent-start), var(--primary-accent-end));
+            border: none !important;
+        }
+        .light-mode #calendar { --fc-today-bg-color: rgba(74, 144, 226, 0.1); }
+        :not(.light-mode) #calendar { --fc-today-bg-color: rgba(74, 144, 226, 0.15); }
+        
+
+        /* TABLES */
+        .dark-table thead { background-color: rgba(255, 255, 255, 0.05); }
+        .light-mode .dark-table thead { background-color: #f7fafc; }
+        .dark-table th { color: var(--text-primary); }
+        .dark-table tbody tr { border-color: var(--border-color); }
+        .dark-table td { color: var(--text-secondary); }
+        
+        /* INPUTS & FORMS */
+        .themed-input {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+        }
+        .themed-input:focus {
+            outline: none;
+            box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light), 0 0 0 2px var(--primary-accent-start);
+        }
+        
+        /* MODAL DATE INPUT COLOR SCHEME */
+        .modal-date-input {
+             color-scheme: dark;
+        }
+        .light-mode .modal-date-input {
+             color-scheme: light;
+        }
+
+        /* SCRIPT-CONTROLLED UTILITIES */
+        .dark\:border-gray-700 { --tw-border-opacity: 1; border-color: rgb(55 65 81 / var(--tw-border-opacity)); }
+        .hidden { display: none; }
+        
+        /* ACTIVITY FEED LIST ITEM STYLE OVERRIDE */
+        #activity-feed-list li {
+            background: linear-gradient(145deg, var(--bg-secondary), var(--bg-main));
+            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        #activity-feed-list li:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <aside id="sidebar" class="fixed top-0 left-0 flex flex-col h-screen w-72 z-[1000] transition-transform duration-300 ease-in-out transform -translate-x-full lg:translate-x-0 neumorphic-flat p-4">
+        <div class="p-4 text-center border-b border-[var(--border-color)] flex items-center justify-center gap-2">
+            <i class="fas fa-hospital-alt text-4xl" style="color: var(--primary-accent-start);"></i>
+            <span class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">ADMIN</span>
+        </div>
+        <ul class="flex flex-col flex-grow p-4 space-y-2 overflow-y-auto scrollbar-custom sidebar-nav">
+            <li><a href="#dashboard-content" class="flex items-center p-3 rounded-lg active-nav"><i class="fas fa-tachometer-alt w-5 text-center mr-4 active-icon"></i> Dashboard</a></li>
+            <li><a href="#user-management-content" class="flex items-center p-3 rounded-lg"><i class="fas fa-users-cog w-5 text-center mr-4"></i> User Management</a></li>
+            <li><a href="#reviews-content" class="flex items-center p-3 rounded-lg"><i class="fas fa-star w-5 text-center mr-4"></i> Reviews</a></li>
+            <li><a href="#analytics-content" class="flex items-center p-3 rounded-lg"><i class="fas fa-chart-line w-5 text-center mr-4"></i> System Analytics</a></li>
+            <li><a href="#settings-content" class="flex items-center p-3 rounded-lg"><i class="fas fa-cogs w-5 text-center mr-4"></i> Settings</a></li>
+        </ul>
+        <div class="p-4 mt-auto">
+            <button id="logoutBtn" class="flex items-center justify-center w-full p-3 text-white rounded-lg shadow-sm transition-all duration-200 font-semibold transform hover:-translate-y-0.5 neumorphic-flat" style="background: var(--danger-color);">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <div id="main-content" class="flex flex-col w-full ml-0 lg:ml-72 transition-all duration-300 ease-in-out">
+        <header class="glassmorphic p-4 flex justify-between items-center sticky top-4 mx-4 md:mx-8 mt-4 rounded-xl z-[999]">
+            <button id="sidebar-toggle" class="lg:hidden text-2xl text-[var(--text-secondary)] cursor-pointer p-0 mr-4 bg-transparent border-none">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="flex items-center gap-4 md:gap-6 ml-auto">
+                <button id="theme-toggle" class="text-xl text-gray-400 hover:text-white transition-colors duration-300">
+                    <i class="fas fa-sun hidden"></i>
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="relative flex items-center gap-2">
+                    <i class="fas fa-bell text-2xl text-gray-400 cursor-pointer transition-colors hover:text-white" id="notification-bell"></i>
+                    <span id="notification-count" class="absolute top-[-5px] right-[-8px] bg-red-600 text-white rounded-full px-1.5 text-xs font-bold leading-none border-2 border-[var(--bg-secondary)] hidden">0</span>
+                    <div id="notification-dropdown" class="absolute top-full right-0 mt-4 w-80 glassmorphic rounded-lg shadow-lg max-h-96 overflow-y-auto scrollbar-custom z-[1010] hidden" >
+                        <div class="p-4 font-semibold border-b border-[var(--border-color)]">Notifications</div>
+                        <ul id="notification-list" class="divide-y divide-[var(--border-color)]"></ul>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 font-semibold text-[var(--text-primary)]">
+                    <i class="fas fa-user-circle text-3xl text-gray-400"></i>
+                    <span id="username-display">Welcome, Admin!</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow p-4 md:p-8">
+            <div id="dashboard-content" class="content-section">
+                <h1 class="text-3xl font-bold mb-8 text-[var(--text-primary)]">Dashboard Overview</h1>
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="neumorphic-flat flex items-center gap-4 p-4">
+                        <div class="flex items-center justify-center w-12 h-12 text-blue-400 neumorphic-inset rounded-md text-2xl">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        <div>
+                            <span id="consultationsTodayCount" class="block text-4xl font-bold text-[var(--text-primary)]">0</span>
+                            <span class="text-sm text-[var(--text-secondary)] mt-1">Consultations Today</span>
+                        </div>
+                    </div>
+                    <div class="neumorphic-flat flex items-center gap-4 p-4">
+                        <div class="flex items-center justify-center w-12 h-12 text-blue-400 neumorphic-inset rounded-md text-2xl">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <div>
+                            <span id="pendingAppointmentsCount" class="block text-4xl font-bold text-[var(--text-primary)]">0</span>
+                            <span class="text-sm text-[var(--text-secondary)] mt-1">Pending Appointments</span>
+                        </div>
+                    </div>
+                    <div class="neumorphic-flat flex items-center gap-4 p-4">
+                         <div class="flex items-center justify-center w-12 h-12 text-blue-400 neumorphic-inset rounded-md text-2xl">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div>
+                            <span id="newPatientsCount" class="block text-4xl font-bold text-[var(--text-primary)]">0</span>
+                            <span class="text-sm text-[var(--text-secondary)] mt-1">New Patients (Today)</span>
+                        </div>
+                    </div>
+                    <div class="neumorphic-flat flex items-center gap-4 p-4">
+                        <div class="flex items-center justify-center w-12 h-12 text-blue-400 neumorphic-inset rounded-md text-2xl">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div>
+                            <span id="activeDoctorsCount" class="block text-4xl font-bold text-[var(--text-primary)]">0</span>
+                            <span class="text-sm text-[var(--text-secondary)] mt-1">Active Doctors</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid gap-6 mt-8 lg:grid-cols-3">
+                    <div class="lg:col-span-2 neumorphic-flat p-6 flex flex-col">
+                        <div class="pb-4 border-b border-[var(--border-color)] mb-4">
+                            <h2 class="text-xl font-semibold text-[var(--text-primary)]">System Activity & Trends</h2>
+                        </div>
+                        <div class="relative h-96">
+                            <canvas id="mainDashboardChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-1 neumorphic-flat p-6 flex flex-col">
+                        <div class="pb-4 border-b border-[var(--border-color)] mb-4">
+                            <h2 class="text-xl font-semibold text-[var(--text-primary)]">Appointments Calendar</h2>
+                        </div>
+                        <div id='calendar' class="flex-grow"></div>
+                    </div>
+                </div>
+
+                <div class="neumorphic-flat p-6 mt-8">
+                    <div class="pb-4 border-b border-gray-300 dark:border-gray-700 mb-4">
+                        <h2 class="text-xl font-semibold text-[var(--text-primary)]">Recent System Activity</h2>
+                    </div>
+                    <ul id="activity-feed-list" class="space-y-4 max-h-96 overflow-y-auto scrollbar-custom pr-2"></ul>
+                </div>
+            </div>
+
+            <div id="user-management-content" class="content-section hidden">
+                <h1 class="text-3xl font-bold mb-8 text-[var(--text-primary)]">User Management</h1>
+
+                <div class="neumorphic-flat p-6">
+                    <div class="pb-4 border-b border-[var(--border-color)] mb-4">
+                        <h2 class="text-xl font-semibold text-[var(--text-primary)]">Patient Management</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="patient-table" class="min-w-full dark-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Username</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Full Name</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Birth Date</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Address</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Phone No.</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="neumorphic-flat p-6 mt-8">
+                    <div class="pb-4 border-b border-[var(--border-color)] mb-4">
+                        <h2 class="text-xl font-semibold text-[var(--text-primary)]">Doctor Management</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="doctor-table" class="min-w-full dark-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Username</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Full Name</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Specialty</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Birth Date</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Address</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Phone No.</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reviews-content" class="content-section hidden">
+                <h1 class="text-3xl font-bold mb-8 text-[var(--text-primary)]">Review Management</h1>
+                <div class="neumorphic-flat p-6">
+                    <div class="pb-4 border-b border-[var(--border-color)] mb-4">
+                        <h2 class="text-xl font-semibold text-[var(--text-primary)]">Customer Reviews</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <ul id="review-list" class="space-y-4">
+                            </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="analytics-content" class="content-section hidden">
+                 <h1 class="text-3xl font-bold mb-8 text-[var(--text-primary)]">System Analytics</h1>
+                 <div class="grid gap-6 lg:grid-cols-2">
+                     <div class="neumorphic-flat p-6 flex flex-col h-[450px]">
+                         <div class="text-center mb-4">
+                             <h2 class="text-xl font-semibold text-[var(--text-primary)]">Consultation Trends</h2>
+                         </div>
+                         <div class="relative h-full">
+                             <canvas id="consultationsChart"></canvas>
+                         </div>
+                     </div>
+                     <div class="neumorphic-flat p-6 flex flex-col h-[450px]">
+                         <div class="text-center mb-4">
+                             <h2 class="text-xl font-semibold text-[var(--text-primary)]">Top Diagnoses</h2>
+                         </div>
+                         <div class="relative h-full">
+                             <canvas id="topDiagnosesChart"></canvas>
+                         </div>
+                     </div>
+                     <div class="neumorphic-flat p-6 flex flex-col h-[450px]">
+                         <div class="text-center mb-4">
+                             <h2 class="text-xl font-semibold text-[var(--text-primary)]">Top 10 Doctor Load</h2>
+                         </div>
+                         <div class="relative h-full">
+                             <canvas id="doctorLoadChart"></canvas>
+                         </div>
+                     </div>
+                     <div class="neumorphic-flat p-6 flex flex-col h-[450px]">
+                         <div class="text-center mb-4">
+                             <h2 class="text-xl font-semibold text-[var(--text-primary)]">Patient Demographics (Gender)</h2>
+                         </div>
+                         <div class="relative h-full">
+                             <canvas id="patientGenderChart"></canvas>
+                         </div>
+                     </div>
+                      <div class="neumorphic-flat p-6 flex flex-col h-[450px]">
+                         <div class="text-center mb-4">
+                             <h2 class="text-xl font-semibold text-[var(--text-primary)]">Patient Age Groups</h2>
+                         </div>
+                         <div class="relative h-full">
+                             <canvas id="patientAgeChart"></canvas>
+                         </div>
+                     </div>
+                      <div class="neumorphic-flat p-6 flex flex-col h-[450px]">
+                         <div class="text-center mb-4">
+                             <h2 class="text-xl font-semibold text-[var(--text-primary)]">Top Specialties Consulted</h2>
+                         </div>
+                         <div class="relative h-full">
+                             <canvas id="specialties3DChart"></canvas>
+                         </div>
+                     </div>
+                 </div>
+            </div>
+
+            <div id="settings-content" class="content-section hidden">
+                <h1 class="text-3xl font-bold mb-8 text-[var(--text-primary)]">Settings</h1>
+                <div class="neumorphic-flat p-6">
+                    <div class="pb-4 border-b border-[var(--border-color)] mb-4">
+                        <h2 class="text-xl font-semibold text-[var(--text-primary)]">System Settings</h2>
+                    </div>
+                    <p class="text-[var(--text-secondary)]">This section will be for configuring system-wide settings, user roles, and other administrative options.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="editModal" class="fixed inset-0 z-[1050] flex items-center justify-center p-4 bg-black/30 backdrop-blur-md hidden">
+        <div class="glassmorphic rounded-2xl w-full max-w-lg relative shadow-xl transform transition-all duration-300 flex flex-col max-h-[90vh] overflow-y-auto scrollbar-custom">
+            <div class="p-8">
+                <span class="absolute top-2 right-4 text-[var(--text-secondary)] text-4xl font-normal cursor-pointer hover:text-[var(--text-primary)] close-btn" id="editModalClose">&times;</span>
+                <h2 class="text-2xl font-semibold mb-6 text-[var(--text-primary)]">Edit User Information</h2>
+                <form id="editForm" class="space-y-4">
+                    <input type="hidden" id="editUserId">
+                    <input type="hidden" id="editOldUsername">
+                    <input type="hidden" id="editUserRole">
+
+                    <div>
+                        <label for="editUsername" class="block mb-2 font-semibold text-[var(--text-secondary)]">Username:</label>
+                        <input type="text" id="editUsername" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none" required>
+                    </div>
+                    <div>
+                        <label for="editFullname" class="block mb-2 font-semibold text-[var(--text-secondary)]">Full Name:</label>
+                        <input type="text" id="editFullname" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none" required>
+                    </div>
+                    <div>
+                        <label for="editEmail" class="block mb-2 font-semibold text-[var(--text-secondary)]">Email:</label>
+                        <input type="email" id="editEmail" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none" required>
+                    </div>
+                    <div>
+                        <label for="editDob" class="block mb-2 font-semibold text-[var(--text-secondary)]">Birth Date:</label>
+                        <input type="date" id="editDob" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none modal-date-input">
+                    </div>
+                    <div>
+                        <label for="editAddress" class="block mb-2 font-semibold text-[var(--text-secondary)]">Address:</label>
+                        <input type="text" id="editAddress" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="editPhone" class="block mb-2 font-semibold text-[var(--text-secondary)]">Phone Number:</label>
+                        <input type="text" id="editPhone" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none">
+                    </div>
+                    <div class="hidden" id="specialty-group">
+                        <label for="editSpecialty" class="block mb-2 font-semibold text-[var(--text-secondary)]">Specialty:</label>
+                        <input type="text" id="editSpecialty" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none">
+                    </div>
+                    <div class="flex justify-end gap-4 mt-6 pt-6 border-t border-[var(--border-color)]">
+                        <button type="submit" class="px-5 py-2 text-sm font-semibold text-white rounded-lg neumorphic-flat" style="background: linear-gradient(145deg, #4282ce, #376dae);">Save Changes</button>
+                        <button id="deleteUserBtn" type="button" class="px-5 py-2 text-sm font-semibold text-white rounded-lg neumorphic-flat" style="background: var(--danger-color);">Delete User</button>
+                    </div>
+                </form>
+                 <hr class="my-6 border-t border-[var(--border-color)]">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-[var(--text-primary)]">Reset Password</h3>
+                    <div class="mb-4">
+                        <label for="newPassword" class="block mb-2 font-semibold text-[var(--text-secondary)]">New Password:</label>
+                        <input type="password" id="newPassword" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none" placeholder="Enter new password">
+                    </div>
+                    <button id="resetPasswordBtn" type="button" class="px-5 py-2 text-sm font-semibold text-white rounded-lg neumorphic-flat" style="background: #555c66;">Reset Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="appointmentModal" class="fixed inset-0 z-[1050] flex items-center justify-center p-4 bg-black/30 backdrop-blur-md hidden">
+        <div class="glassmorphic rounded-2xl w-full max-w-lg relative shadow-xl transform transition-all duration-300 flex flex-col max-h-[90vh] overflow-y-auto scrollbar-custom">
+            <div class="p-8">
+                <span class="absolute top-2 right-4 text-[var(--text-secondary)] text-4xl font-normal cursor-pointer hover:text-[var(--text-primary)] close-btn" id="closeAppointmentModal">&times;</span>
+                <h2 class="text-2xl font-semibold mb-6 text-[var(--text-primary)]">Appointment Details</h2>
+                <form id="appointmentForm">
+                    <input type="hidden" id="appointmentId">
+                    <p class="mb-2 text-[var(--text-secondary)]"><strong class="font-semibold text-[var(--text-primary)]">Patient:</strong> <span id="modalPatientName"></span></p>
+                    <p class="mb-2 text-[var(--text-secondary)]"><strong class="font-semibold text-[var(--text-primary)]">Doctor:</strong> <span id="modalDoctorName"></span></p>
+                    <p class="mb-4 text-[var(--text-secondary)]"><strong class="font-semibold text-[var(--text-primary)]">Date:</strong> <span id="modalAppointmentDate"></span></p>
+                    <div class="mb-4">
+                        <label for="appointmentStatus" class="block mb-2 font-semibold text-[var(--text-primary)]">Status:</label>
+                        <select id="appointmentStatus" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end mt-6 pt-6 border-t border-[var(--border-color)]">
+                        <button type="submit" class="px-5 py-2 text-sm font-semibold text-white rounded-lg neumorphic-flat" style="background: linear-gradient(145deg, #4282ce, #376dae);">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="replyModal" class="fixed inset-0 z-[1050] flex items-center justify-center p-4 bg-black/30 backdrop-blur-md hidden">
+        <div class="glassmorphic rounded-2xl w-full max-w-lg relative shadow-xl transform transition-all duration-300 flex flex-col max-h-[90vh] overflow-y-auto scrollbar-custom">
+            <div class="p-8">
+                <span class="absolute top-2 right-4 text-[var(--text-secondary)] text-4xl font-normal cursor-pointer hover:text-[var(--text-primary)] close-btn" id="closeReplyModal">&times;</span>
+                <h2 class="text-2xl font-semibold mb-6 text-[var(--text-primary)]">Reply to Review</h2>
+                <form id="replyForm">
+                    <input type="hidden" id="replyReviewId">
+                    <div class="mb-4">
+                        <label class="block mb-2 font-semibold text-[var(--text-primary)]">Review Text:</label>
+                        <p id="replyReviewText" class="p-3 rounded-lg themed-input text-[var(--text-secondary)] text-sm italic"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label for="replyMessage" class="block mb-2 font-semibold text-[var(--text-primary)]">Your Reply:</label>
+                        <textarea id="replyMessage" class="w-full p-3 text-base themed-input rounded-lg focus:outline-none" rows="5" required></textarea>
+                    </div>
+                    <div class="flex justify-end mt-6 pt-6 border-t border-[var(--border-color)]">
+                        <button type="submit" class="px-5 py-2 text-sm font-semibold text-white rounded-lg neumorphic-flat" style="background: linear-gradient(145deg, #4282ce, #376dae);">Submit Reply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js'></script>
+    
+    <script>
+        (function() {
+            const themeToggleButton = document.getElementById('theme-toggle');
+            const sunIcon = themeToggleButton.querySelector('.fa-sun');
+            const moonIcon = themeToggleButton.querySelector('.fa-moon');
+            const body = document.body;
+            const darkBorderClass = 'dark:border-gray-700';
+
+            const applyTheme = (theme) => {
+                if (theme === 'light') {
+                    body.classList.add('light-mode');
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                } else {
+                    body.classList.remove('light-mode');
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                }
+            };
+            
+            // Tailwind dark mode logic needs to be handled via class on a parent
+            const setupTailwindDark = (theme) => {
+                 if (theme === 'dark') {
+                     document.documentElement.classList.add('dark');
+                 } else {
+                     document.documentElement.classList.remove('dark');
+                 }
+            }
+
+            themeToggleButton.addEventListener('click', () => {
+                const isLight = body.classList.contains('light-mode');
+                const newTheme = isLight ? 'dark' : 'light';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+                setupTailwindDark(newTheme);
+            });
+
+            // Apply saved theme on initial load
+            const savedTheme = localStorage.getItem('theme') || 'dark'; // Default to dark
+            applyTheme(savedTheme);
+            setupTailwindDark(savedTheme);
+
+            // Correctly handle the initial state of the specific dark-mode border class
+             if (savedTheme === 'light') {
+                document.querySelectorAll('.' + darkBorderClass).forEach(el => el.classList.remove('dark:border-gray-700'));
+            }
+        })();
+    </script>
+    
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>
+
+<!-- admin-dashboard.html -->

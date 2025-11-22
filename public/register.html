@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Telemedicine</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #e0f2f7; /* Soft medical blue */
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            padding: 40px 50px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 1px solid #d1d1d1;
+            max-width: 480px;
+            width: 100%;
+            margin: 20px; /* Added margin for spacing */
+            animation: fadeIn 0.8s ease-out;
+        }
+        h1 {
+            color: #263238; /* Dark grey */
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #37474f; /* Slate grey */
+        }
+        label.required::after {
+            content: " *";
+            color: #f44336; /* Red */
+        }
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            padding-left: 12px; /* Default padding */
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input[type="text"], input[type="password"], input[type="tel"], input[type="email"] {
+             padding-left: 40px; /* Padding for icon */
+        }
+        input:focus, select:focus {
+            border-color: #009688; /* Teal */
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 150, 136, 0.2);
+        }
+        /* Red border for invalid fields after interaction */
+        input:invalid.touched, select:invalid.touched {
+            border-color: #f44336;
+        }
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            color: #78909c; /* Blue grey */
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background-color: #009688; /* Teal */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: width 0.5s, height 0.5s;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+        }
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        button:hover {
+            background-color: #00796b; /* Darker teal */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background-color: #b2dfdb; /* Light teal */
+            cursor: not-allowed;
+            transform: none;
+            animation: none;
+        }
+        .login-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #546e7a; /* Dark blue grey */
+        }
+        .login-link a {
+            color: #009688; /* Teal */
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
+        }
+        .consent-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .consent-group input {
+            width: auto;
+        }
+        .consent-group input[disabled] {
+            cursor: pointer;
+        }
+        .consent-group label {
+            margin-bottom: 0;
+            font-size: 14px;
+            color: #546e7a;
+        }
+        .terms-link {
+            color: #009688;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 85%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #263238;
+        }
+        .modal-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 5px;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            color: #455a64; /* Dark grey */
+        }
+        .modal-footer {
+            text-align: right;
+        }
+        .modal-footer button {
+            width: auto;
+            padding: 12px 25px;
+            font-size: 15px;
+            margin-left: 10px;
+        }
+
+        /* Keyframe animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 150, 136, 0.4); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(0, 150, 136, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 150, 136, 0); }
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px; /* Reduced body padding */
+            }
+            .container {
+                padding: 20px 30px;
+                margin: 10px auto; /* Centered with margin */
+            }
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            input, select {
+                font-size: 14px;
+                padding: 10px;
+            }
+            input[type="text"], input[type="password"], input[type="tel"], input[type="email"] {
+                padding-left: 35px;
+            }
+            button {
+                padding: 12px;
+                font-size: 14px;
+            }
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+            .modal-header h2 {
+                font-size: 20px;
+            }
+            .modal-body {
+                font-size: 13px;
+                padding: 15px;
+            }
+            .modal-footer button {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create an Account</h1>
+
+        <form id="register-form">
+            <div class="form-group">
+                <label for="fullname" class="required">Full Name</label>
+                <div class="input-container">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" id="fullname" placeholder="e.g., Jane Doe" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="dob" class="required">Date of Birth</label>
+                <input type="date" id="dob" required>
+            </div>
+            <div class="form-group">
+                <label for="gender" class="required">Gender</label>
+                <select id="gender" required>
+                    <option value="" disabled selected>Select your gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="address" class="required">Address</label>
+                <div class="input-container">
+                    <i class="fas fa-home input-icon"></i>
+                    <input type="text" id="address" placeholder="e.g., 123 Main St, Anytown" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="phone" class="required">Phone Number</label>
+                <div class="input-container">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input type="tel" id="phone" placeholder="e.g., 09123456789" required inputmode="numeric" minlength="11">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email" class="required">Email</label>
+                <div class="input-container">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="email" placeholder="e.g., jane.doe@example.com" required>
+                </div>
+            </div>
+
+            <hr style="margin-bottom: 25px; border: 0; border-top: 1px solid #e0e0e0;">
+
+            <div class="form-group">
+                <label for="username" class="required">Username</label>
+                <div class="input-container">
+                    <i class="fas fa-user-circle input-icon"></i>
+                    <input type="text" id="username" placeholder="Choose a unique username" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password" class="required">Password</label>
+                <div class="input-container">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="password" placeholder="Create a secure password" required minlength="8">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="role" class="required">I am a:</label>
+                <select id="role" required>
+                    <option value="" disabled selected>Select your role</option>
+                    <option value="Patient">Patient</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="specialty-group">
+                <label for="specialty" class="required">Specialty</label>
+                <select id="specialty" required>
+                    <option value="" disabled selected>Select your specialty</option>
+                    <option value="General">General Medicine</option>
+                    <option value="Neurology">Neurology</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Dermatology">Dermatology</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Orthopedics">Orthopedics</option>
+                    <option value="Psychiatry">Psychiatry</option>
+                    <option value="Ophthalmology">Ophthalmology</option>
+                </select>
+            </div>
+
+            <div class="form-group consent-group">
+                <input type="checkbox" id="consent-checkbox" disabled>
+                <label for="consent-checkbox">I agree to the <span class="terms-link">Terms and Conditions</span>.</label>
+            </div>
+
+            <button type="submit" id="register-btn" disabled>Register</button>
+        </form>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="/">Login here</a></p>
+        </div>
+    </div>
+
+    <div id="terms-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Terms and Conditions</h2>
+            </div>
+            <div class="modal-body" id="terms-content">
+                <p>These Terms and Conditions ("Terms") govern your use of the Telemedicine service provided by [Your Company Name] ("Company," "we," "us," or "our"). By creating an account and using our services, you agree to be bound by these Terms.</p>
+
+                <h3>1. Acceptance of Terms</h3>
+                <p>By accessing or using the Service, you confirm that you have read, understood, and agree to be bound by these Terms. If you do not agree, you may not use the Service.</p>
+
+                <h3>2. User Accounts</h3>
+                <p>You must be at least 18 years of age to create an account. You are responsible for maintaining the confidentiality of your account password and for all activities that occur under your account.</p>
+
+                <h3>3. Privacy Policy</h3>
+                <p>Your use of the Service is also governed by our Privacy Policy, which outlines how we collect, use, and protect your personal information. By using the Service, you consent to the data practices described in our Privacy Policy.</p>
+
+                <h3>4. Medical Disclaimer</h3>
+                <p>The information provided on this platform is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
+
+                <h3>5. Prohibited Conduct</h3>
+                <p>You agree not to use the Service for any unlawful or prohibited purposes. This includes, but is not limited to, unauthorized access to data, transmitting viruses, or engaging in fraudulent activity.</p>
+
+                <h3>6. Termination</h3>
+                <p>We reserve the right to suspend or terminate your account at our sole discretion, without notice, for any conduct that we believe violates these Terms or is harmful to other users of the Service.</p>
+
+                <h3>7. Changes to Terms</h3>
+                <p>We may modify these Terms at any time. We will notify you of any changes by posting the new Terms on this page. Your continued use of the Service after any such changes constitutes your acceptance of the new Terms.</p>
+
+                <p>By clicking "I Agree," you acknowledge that you have read, understood, and agreed to all of the above terms and conditions.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="agree-terms-btn" disabled>I Agree</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const roleSelect = document.getElementById('role');
+        const specialtyGroup = document.getElementById('specialty-group');
+        const registerForm = document.getElementById('register-form');
+        const consentCheckbox = document.getElementById('consent-checkbox');
+        const registerBtn = document.getElementById('register-btn');
+        const phoneInput = document.getElementById('phone');
+        const passwordInput = document.getElementById('password');
+        const formElements = registerForm.querySelectorAll('input, select');
+
+        // Modal elements
+        const termsModal = document.getElementById('terms-modal');
+        const consentGroup = document.querySelector('.consent-group');
+        const termsContent = document.getElementById('terms-content');
+        const agreeTermsBtn = document.getElementById('agree-terms-btn');
+
+        // Keep track of touched fields for validation styling
+        formElements.forEach(element => {
+            element.addEventListener('blur', () => {
+                element.classList.add('touched');
+            });
+        });
+
+        // Show the terms modal when the consent group is clicked and the box is disabled
+        consentGroup.addEventListener('click', (event) => {
+            if (consentCheckbox.disabled) {
+                event.preventDefault(); // Prevents trying to toggle the disabled checkbox
+                termsModal.classList.add('show');
+                agreeTermsBtn.disabled = true;
+                termsContent.scrollTop = 0; // Reset scroll position
+            }
+        });
+
+        // Enable the agree button once the user scrolls to the bottom
+        termsContent.addEventListener('scroll', () => {
+            // Check if user has scrolled to the bottom (with a 5px tolerance)
+            if (termsContent.scrollTop + termsContent.clientHeight >= termsContent.scrollHeight - 5) {
+                agreeTermsBtn.disabled = false;
+            }
+        });
+
+        // Close the modal, enable and check the consent box when the user agrees
+        agreeTermsBtn.addEventListener('click', () => {
+            termsModal.classList.remove('show');
+            consentCheckbox.disabled = false; // Enable the checkbox
+            consentCheckbox.checked = true; // Check it
+            consentCheckbox.dispatchEvent(new Event('change')); // Trigger change event to enable register button
+        });
+
+        // Enable/disable register button based on consent
+        consentCheckbox.addEventListener('change', () => {
+            if (consentCheckbox.checked) {
+                registerBtn.disabled = false;
+                registerBtn.style.animation = 'pulse 1.5s infinite';
+            } else {
+                registerBtn.disabled = true;
+                registerBtn.style.animation = 'none';
+            }
+        });
+
+        // Show or hide the specialty field based on the selected role
+        roleSelect.addEventListener('change', () => {
+            const specialtyLabel = document.querySelector('#specialty-group label');
+            const specialtySelect = document.getElementById('specialty');
+            if (roleSelect.value === 'Doctor') {
+                specialtyGroup.classList.remove('hidden');
+                specialtyLabel.classList.add('required');
+                specialtySelect.required = true;
+            } else {
+                specialtyGroup.classList.add('hidden');
+                specialtyLabel.classList.remove('required');
+                specialtySelect.required = false;
+                specialtySelect.value = ''; // Reset specialty if role changes
+                specialtySelect.classList.remove('touched'); // Reset touched state
+                specialtySelect.setCustomValidity(''); // Clear any custom validation messages
+            }
+        });
+
+        // Use an event listener to strip non-numeric characters in real-time
+        phoneInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            phoneInput.classList.add('touched'); // Mark as touched on input
+        });
+
+        registerForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            let isFormValid = true;
+
+            formElements.forEach(element => {
+                if (element.hasAttribute('required') && !element.value) {
+                    element.classList.add('touched');
+                    element.classList.add('is-invalid');
+                    isFormValid = false;
+                } else {
+                    element.classList.remove('is-invalid');
+                }
+            });
+            
+            // Password length validation
+            if (passwordInput.value.length < 8) {
+                passwordInput.classList.add('touched');
+                passwordInput.classList.add('is-invalid');
+                isFormValid = false;
+                alert('Password must be at least 8 characters long.');
+                return;
+            } else {
+                passwordInput.classList.remove('is-invalid');
+            }
+
+            // Phone number length validation
+            if (phoneInput.value.length < 11) {
+                phoneInput.classList.add('touched');
+                phoneInput.classList.add('is-invalid');
+                isFormValid = false;
+                alert('Phone number must be at least 11 digits long.');
+                return;
+            } else {
+                phoneInput.classList.remove('is-invalid');
+            }
+
+            if (!consentCheckbox.checked) {
+                alert('Please read and agree to the Terms and Conditions.');
+                isFormValid = false;
+                return;
+            }
+
+            if (roleSelect.value === 'Doctor' && document.getElementById('specialty').value === '') {
+                document.getElementById('specialty').classList.add('touched');
+                document.getElementById('specialty').classList.add('is-invalid');
+                isFormValid = false;
+                alert('Please select a specialty.');
+                return;
+            } else {
+                document.getElementById('specialty').classList.remove('is-invalid');
+            }
+
+            if (isFormValid) {
+                const registrationData = {
+                    fullname: document.getElementById('fullname').value,
+                    dob: document.getElementById('dob').value,
+                    gender: document.getElementById('gender').value,
+                    address: document.getElementById('address').value,
+                    phone: phoneInput.value,
+                    email: document.getElementById('email').value,
+                    username: document.getElementById('username').value,
+                    password: passwordInput.value,
+                    role: roleSelect.value
+                };
+
+                if (registrationData.role === 'Doctor') {
+                    registrationData.specialty = document.getElementById('specialty').value;
+                }
+
+                socket.emit('user:register', registrationData, (response) => {
+                    alert(response.message);
+
+                    if (response.success) {
+                        window.location.href = '/';
+                    }
+                });
+            } else {
+                alert('Please fill out all the required fields correctly.');
+            }
+        });
+    </script>
+</body>
+</html>
+
+register.html

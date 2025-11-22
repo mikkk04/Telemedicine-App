@@ -1,0 +1,15 @@
+# 1. Dependencies (Too heavy to upload)
+node_modules/
+
+# 2. Secrets (Passwords & Keys - CRITICAL SECURITY)
+.env
+
+# 3. Local User Uploads (Don't fill GitHub with test images)
+public/uploads/
+temp_uploads/
+
+# 4. Logs and System Junk (Windows/Mac junk files)
+npm-debug.log
+*.log
+Thumbs.db
+.DS_Store

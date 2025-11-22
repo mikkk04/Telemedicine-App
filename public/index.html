@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Telemedicine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+<body>
+    <div class="login-box">
+        <form id="login-form">
+            <h1>LOG IN</h1>
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="login-btn">LOG IN</button>
+            <div class="signup-link">
+                <p>Not a member? <a href="/register.html">Sign up now</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/login.js"></script>
+</body>
+</html>
+
+<!-- index.html -->
