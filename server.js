@@ -504,7 +504,7 @@ async function loadAppointmentsForDoctorDashboard(doctorName, specialty) {
         WHERE (app.doctorName = ? OR (app.specialty = ? AND app.status = 'Pending'))
         ORDER BY app.created_at DESC
     `.trim();
-    // Removed: AND app.status NOT IN ('Completed', 'Rejected', 'Cancelled')
+    // FIX: The redundant filter AND app.status NOT IN ('Completed', 'Rejected', 'Cancelled') has been REMOVED.
     try {
         const [rows] = await pool.query(sql, [doctorName, specialty]);
         return rows;
