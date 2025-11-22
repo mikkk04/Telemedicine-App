@@ -33,10 +33,10 @@
 
         html.dark {
             /* Dark Theme Overrides */
-            --primary-color: #4ECCA3;
+            --primary-color: #4ECCA3; /* Vibrant Mint Green */
             --primary-light: #67d8b3;
             --accent-color: #4ECCA3;
-            --ui-danger: #e65163;
+            --ui-danger: #e65163; /* Softer red for dark mode */
 
             --bg-main: #232931;
             --bg-element: #232931;
@@ -45,16 +45,20 @@
             --text-secondary: #9299A8;
             --border-color: #393E46;
 
-            --shadow-light: rgba(78, 204, 163, 0.1);
+            --shadow-light: rgba(78, 204, 163, 0.1); /* Use accent color for a subtle glow */
             --shadow-dark: rgba(0, 0, 0, 0.4);
             
+            /* ⭐ CRITICAL FIX: Tells browser to render native controls (selects, scrollbars) in dark mode */
             color-scheme: dark;
         }
 
         html { height: 100%; }
         body {
-            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            height: 100vh;
+            /* Fallback for browsers that don't support dvh */
+            height: 100dvh; 
             overflow: hidden;
+            overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             font-family: 'Inter', sans-serif;
@@ -95,9 +99,6 @@
             box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px rgba(230, 81, 99, 0.2);
             color: var(--ui-danger);
         }
-        @media (max-width: 480px) {
-            .notification-banner { top: 1rem; right: 1rem; left: 1rem; width: auto; text-align: center; justify-content: center; }
-        }
 
         /* Modals */
         .modal-overlay {
@@ -109,97 +110,96 @@
             opacity: 0;
             transition: opacity 0.3s ease-in-out, visibility 0s 0.3s;
             visibility: hidden;
+            padding: 1rem; /* Ensure padding on mobile so modal doesn't touch edges */
         }
         .modal-overlay.show { opacity: 1; visibility: visible; transition: opacity 0.3s ease-in-out; }
         .modal-container { 
             animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
             background: var(--bg-element);
             box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
-            max-height: 90vh;
-            overflow-y: auto;
+            max-height: 90vh; /* Prevent modal from exceeding screen height */
+            overflow-y: auto; /* Allow scrolling inside modal if too tall */
         }
 
-        /* General Layout & Responsive Logic */
+        /* General Layout - Desktop */
         @media (min-width: 993px) {
             .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 280px; overflow-y: auto; }
             .header { position: fixed; top: 0; left: 280px; right: 0; width: calc(100% - 280px); z-index: 999; border-radius: 0; }
-            .main-content-wrapper { margin-left: 280px; padding: 24px; padding-top: 100px; height: 100vh; overflow-y: auto; }
+            .main-content-wrapper { margin-left: 280px; padding: 24px; padding-top: 100px; }
         }
-        
+
+        /* ⭐ MOBILE UI FIXES START HERE ⭐ */
         @media (max-width: 992px) {
-            .sidebar { transform: translateX(-100%); position: fixed; height: 100vh; border-radius: 0; margin: 0; z-index: 3000; }
+            .sidebar { transform: translateX(-100%); position: fixed; height: 100vh; border-radius: 0; margin: 0; }
             .sidebar.is-open { transform: translateX(0); }
-            .overlay.is-visible { opacity: 1; visibility: visible; z-index: 2900; }
             body.scroll-lock { overflow: hidden; }
             
+            /* Header fixed at top */
             .header { 
-                position: sticky; top: 0; left: 0; width: 100%; z-index: 1000; 
-                border-radius: 0; margin: 0 !important; padding: 0.75rem 1rem; 
-                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            }
-            
-            .main-content-wrapper { 
-                padding: 0; /* Reset padding */
-                height: 100dvh; 
-                display: flex; flex-direction: column;
-            }
-            
-            .main-content { 
-                padding: 1rem; 
-                overflow-y: auto; 
-                flex-grow: 1;
-            }
-            
-            /* Fix Messages View on Mobile to prevent overlap */
-            #messages-view { height: calc(100dvh - 80px); } /* Approximate height minus header */
-            
-            .messages-layout { 
-                display: block; 
-                height: 100%; 
-                position: relative;
-            }
-            
-            /* Default State: Show List, Hide Chat */
-            .messages-sidebar { 
-                display: flex; 
-                height: 100%; 
+                position: fixed; 
+                top: 0; 
+                left: 0; 
                 width: 100%; 
-            }
-            
-            .messages-content { 
-                display: none; /* Hidden by default on mobile */
-                height: 100%; 
-                width: 100%; 
-                position: absolute; 
-                top: 0; left: 0; 
-                z-index: 50;
+                z-index: 999; 
+                border-radius: 0; 
+                margin: 0 !important; 
+                padding: 0.75rem 1rem; 
+                background-color: var(--bg-element); /* Ensure background is solid */
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Add shadow to separate from content */
             }
 
-            /* Active Chat State: Hide List, Show Chat */
-            .messages-layout.mobile-chat-active .messages-sidebar { display: none; }
-            .messages-layout.mobile-chat-active .messages-content { display: flex; }
+            /* FIX: Overlapping & Scroll Issues
+               1. Increased padding-top to 7.5rem (approx 120px) to clear the fixed header.
+               2. Added padding-bottom to ensure last items aren't cut off.
+               3. Used 100dvh for better mobile browser height calculation.
+               4. Added -webkit-overflow-scrolling for smooth iOS scrolling.
+            */
+            .main-content-wrapper { 
+                padding-top: 7.5rem; 
+                padding-left: 1rem; 
+                padding-right: 1rem; 
+                padding-bottom: 4rem; 
+                overflow-y: auto; 
+                height: 100dvh; 
+                -webkit-overflow-scrolling: touch;
+            }
             
-            #back-to-doctors-btn { display: flex !important; } /* Show back button on mobile */
+            /* Ensure modal fits on mobile */
+            .modal-container {
+                width: 95% !important;
+                max-width: 95% !important;
+                padding: 1.5rem !important;
+            }
         }
 
-        @media (min-width: 993px) {
-            #back-to-doctors-btn { display: none !important; }
+        @media (max-width: 480px) {
+            .main-content { padding: 0; }
+            .card, .profile-forms-container .card { padding: 1.25rem; margin-bottom: 1rem; } /* Add margin between cards */
+            .header { padding: 0.5rem 1rem; }
+            .header-welcome h3 { font-size: 1rem; }
+            #main-header-title { font-size: 1.5rem; margin-bottom: 1rem; }
+            .modal-header h3 { font-size: 1.25rem; }
+            .profile-picture-section { width: 6rem; height: 6rem; }
+            .dashboard-appointments-grid .placeholder-container { padding: 2rem 1rem; }
+            .action-btn { padding: 0.6rem 1.2rem; font-size: 0.875rem; }
+            .help-options { grid-template-columns: repeat(1, minmax(0, 1fr)); }
         }
 
         .sidebar { transition: transform 0.3s ease-in-out; background-color: var(--bg-element); }
         .overlay { transition: opacity 0.3s ease; }
 
         /* Custom scrollbar styles */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
         html.dark ::-webkit-scrollbar-track { background: var(--shadow-dark); }
-        ::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 10px; border: 2px solid var(--bg-main); }
+        html.dark ::-webkit-scrollbar-thumb { border-color: var(--shadow-dark); }
 
         /* Neumorphic Card Style */
         .card {
             background: var(--bg-element);
             border-radius: 20px;
-            padding: 1.5rem;
+            padding: 2rem;
             box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
             transition: all 0.3s ease;
         }
@@ -220,6 +220,8 @@
         html.light .action-btn.primary { color: #FFFFFF; }
         .action-btn.primary:hover { background-color: var(--primary-light); }
         .action-btn.danger { background-color: var(--ui-danger); color: #FFFFFF; }
+        .action-btn.danger:hover { background-color: #c82333; }
+        html.dark .action-btn.danger:hover { background-color: #d44152; }
         
         /* Neumorphic Form Elements */
         .form-input {
@@ -240,34 +242,73 @@
         html.dark select.form-input {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239299A8' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
         }
-        html.dark select.form-input option, html.dark select.form-input optgroup {
-            background-color: var(--bg-element); color: var(--text-primary);
+        
+        /* ⭐ SELECT ELEMENT FIX */
+        /* This explicitly forces the options to have high contrast in dark mode */
+        html.dark select.form-input option, 
+        html.dark select.form-input optgroup {
+            background-color: var(--bg-element);
+            color: var(--text-primary);
         }
 
         /* Sidebar Nav */
         .sidebar-nav .nav-link { color: var(--text-secondary); font-weight: 500; transition: all 0.2s ease; position: relative; }
+        .sidebar-nav .nav-link:hover { color: var(--text-primary); background-color: rgba(100, 100, 100, 0.05); }
         .sidebar-nav .nav-link.active {
             color: var(--primary-color);
             background: linear-gradient(90deg, rgba(76, 122, 251, 0.1) 0%, rgba(76, 122, 251, 0) 100%);
             box-shadow: inset 3px 0 0 0 var(--primary-color);
         }
-        html.dark .sidebar-nav .nav-link.active { background: linear-gradient(90deg, rgba(78, 204, 163, 0.1) 0%, rgba(78, 204, 163, 0) 100%); }
+        html.dark .sidebar-nav .nav-link.active {
+             background: linear-gradient(90deg, rgba(78, 204, 163, 0.1) 0%, rgba(78, 204, 163, 0) 100%);
+        }
+        .sidebar-nav .nav-link i { color: var(--text-secondary); transition: all 0.2s ease; }
+        .sidebar-nav .nav-link:hover i, .sidebar-nav .nav-link.active i { color: var(--primary-color); }
 
-        /* Messages View Specifics */
+        /* Dashboard Items */
+        .visit-item {
+            background: var(--bg-element); border-radius: 16px; padding: 1rem;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+            transition: all 0.3s ease; cursor: pointer;
+        }
+        .visit-item:hover { transform: scale(1.02); box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light); }
+        .visit-item .info-block .service-name { font-weight: 600; color: var(--text-primary); }
+        .visit-item .info-block .doctor-name { font-size: 0.875rem; color: var(--text-secondary); }
+        .visit-item .status-tag { font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 9999px; text-transform: uppercase; }
+        .visit-item .status-tag.accepted { background-color: var(--ui-success); color: white; }
+        .visit-item .status-tag.pending { background-color: var(--ui-warning); color: #fff; }
+        
+        /* Consultation History Cards */
+        .consultation-card {
+            background-color: var(--bg-element); border-radius: 20px;
+            box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+            transition: all 0.3s ease;
+        }
+        .consultation-card:hover { transform: translateY(-5px); }
+        .consultation-card-header { border-bottom: 1px solid var(--border-color); }
+        .status-badge.completed { background-color: var(--ui-success); }
+        .status-badge.rejected { background-color: var(--ui-danger); }
+
+        /* Profile View */
+        .profile-picture-overlay { opacity: 0; transition: opacity 0.3s ease; }
+        .profile-picture-uploader:hover .profile-picture-overlay { opacity: 1; }
+        
+        /* Messages View */
         .message-list-container {
-            flex-grow: 1; overflow-y: auto; padding: 1rem;
-            display: flex; flex-direction: column; gap: 1rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
             background-color: var(--bg-main);
         }
         .doctor-card {
             display: flex; align-items: center; gap: 12px; padding: 12px 16px;
             border-radius: 12px; cursor: pointer; transition: all 0.2s ease;
-            border: 1px solid transparent;
         }
-        .doctor-card:hover, .doctor-card.active { 
-            background-color: rgba(78, 204, 163, 0.1); 
-            border-color: var(--primary-color);
-        }
+        .doctor-card:hover, .doctor-card.active { background-color: rgba(78, 204, 163, 0.1); }
         .doctor-card.active .doctor-name, .doctor-card.active .doctor-specialty { color: var(--primary-color); }
         html.light .doctor-card:hover, html.light .doctor-card.active { background-color: rgba(76, 122, 251, 0.1); }
 
@@ -285,51 +326,91 @@
         .message-input-form-container { background: var(--bg-element); border-top: 1px solid var(--border-color); padding: 1rem; }
         .message-input-form { background: transparent; box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
 
-        /* View toggling helper for message scroll fix */
-        body:not(.messages-active) .main-content { overflow-y: auto; }
-        body.messages-active .main-content { overflow-y: hidden; }
-        
+        /* NEW CSS FOR MESSAGE VIEW SCROLLING FIX */
+        body:not(.messages-active) .main-content {
+            overflow-y: auto;
+        }
+
+        body.messages-active .main-content {
+            overflow-y: hidden;
+        }
+
         @media (min-width: 993px) {
-            body.messages-active .messages-layout { height: calc(100vh - 100px - 48px - 48px); }
+            body.messages-active .messages-layout {
+                height: calc(100vh - 100px - 48px - 48px); /* Full height - header height - main content top padding - main content bottom padding */
+            }
+        }
+        
+         /* Style for disabled button */
+        .action-btn.disabled, .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+            /* Optional: remove hover effect for disabled */
+            box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+        }
+        .action-btn.disabled:hover, .action-btn:disabled:hover {
+            box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light); /* Keep inset on hover too if desired */
+            color: var(--text-secondary); /* Ensure hover color doesn't change */
+            background-color: var(--bg-element); /* Ensure background doesn't change */
         }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col min-h-screen overflow-hidden">
     <div id="notification-banner" class="notification-banner"></div>
 
     <div class="modal-overlay" id="appointment-modal">
-        <div class="modal-container rounded-2xl p-6 shadow-2xl w-[90%] max-w-[520px]">
+        <div class="modal-container rounded-2xl p-8 shadow-2xl w-[90%] max-w-[520px]">
             <div class="modal-header flex justify-between items-center mb-6 pb-4 border-b border-[var(--border-color)]">
-                <h3 class="text-xl font-semibold text-[var(--text-primary)] m-0">Request Appointment</h3>
-                <button class="modal-close-btn text-2xl text-[var(--text-secondary)] hover:text-[var(--ui-danger)]">&times;</button>
+                <h3 class="text-2xl font-semibold text-[var(--text-primary)] m-0">Request an Appointment</h3>
+                <button class="modal-close-btn text-2xl text-[var(--text-secondary)] hover:text-[var(--ui-danger)] transition-all duration-300">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="appointment-request-form">
-                    <div class="form-group mb-4">
-                        <label for="appointment-expertise" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Expertise</label>
-                        <select id="appointment-expertise" required class="form-input"><option value="General">General</option><option value="Neurology">Neurology</option></select>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="appointment-date" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Date</label>
-                        <input type="date" id="appointment-date" required class="form-input">
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="appointment-time" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Time</label>
-                        <select id="appointment-time" required class="form-input">
-                            <option value="08:00:00">8:00 AM</option>
-                            <option value="09:00:00">9:00 AM</option>
-                            <option value="10:00:00">10:00 AM</option>
-                            <option value="13:00:00">1:00 PM</option>
-                            <option value="14:00:00">2:00 PM</option>
-                            <option value="15:00:00">3:00 PM</option>
+                    <div class="form-group mb-5">
+                        <label for="appointment-expertise" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Choose an Expertise</label>
+                        <select id="appointment-expertise" required class="form-input">
+                            <option value="" disabled selected>Select an expertise</option>
+                            <option value="General">General</option>
+                            <option value="Neurology">Neurology</option>
                         </select>
                     </div>
-                    <div class="form-group mb-4">
-                        <label for="appointment-reason" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Reason</label>
+                    <div class="form-group mb-5">
+                        <label for="appointment-date" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Preferred Date</label>
+                        <input type="date" id="appointment-date" required class="form-input">
+                    </div>
+                    <div class="form-group mb-5">
+                        <label for="appointment-time" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Preferred Time</label>
+                        <select id="appointment-time" required class="form-input">
+                            <option value="" disabled selected>Select a time</option>
+                            <optgroup label="Morning">
+                                <option value="08:00:00">8:00 AM</option>
+                                <option value="08:30:00">8:30 AM</option>
+                                <option value="09:00:00">9:00 AM</option>
+                                <option value="09:30:00">9:30 AM</option>
+                                <option value="10:00:00">10:00 AM</option>
+                                <option value="10:30:00">10:30 AM</option>
+                                <option value="11:00:00">11:00 AM</option>
+                                <option value="11:30:00">11:30 AM</option>
+                            </optgroup>
+                            <optgroup label="Afternoon">
+                                <option value="13:00:00">1:00 PM</option>
+                                <option value="13:30:00">1:30 PM</option>
+                                <option value="14:00:00">2:00 PM</option>
+                                <option value="14:30:00">2:30 PM</option>
+                                <option value="15:00:00">3:00 PM</option>
+                                <option value="15:30:00">3:30 PM</option>
+                                <option value="16:00:00">4:00 PM</option>
+                                <option value="16:30:00">4:30 PM</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group mb-5">
+                        <label for="appointment-reason" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Reason for Appointment</label>
                         <textarea id="appointment-reason" required class="form-input" rows="3"></textarea>
                     </div>
-                    <div class="modal-footer flex justify-end mt-6">
-                        <button type="submit" class="action-btn primary w-full md:w-auto">Send Request</button>
+                    <div class="modal-footer flex justify-end gap-3 mt-8">
+                        <button type="submit" class="action-btn primary">Send Request</button>
                     </div>
                 </form>
             </div>
@@ -337,168 +418,307 @@
     </div>
 
     <div class="modal-overlay" id="patient-call-details-modal">
-        <div class="modal-container rounded-2xl p-6 shadow-2xl w-[90%] max-w-[520px]">
-            <div class="modal-header flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
-                <h3 class="text-xl font-semibold text-[var(--text-primary)] m-0">Call Details</h3>
-                <button class="modal-close-btn text-2xl text-[var(--text-secondary)]">&times;</button>
+        <div class="modal-container rounded-2xl p-8 shadow-2xl w-[90%] max-w-[520px]">
+            <div class="modal-header flex justify-between items-center mb-6 pb-4 border-b border-[var(--border-color)]">
+                <h3 class="text-2xl font-semibold text-[var(--text-primary)] m-0">Appointment Call Details</h3>
+                <button class="modal-close-btn text-2xl text-[var(--text-secondary)] hover:text-[var(--ui-danger)] transition-all duration-300">&times;</button>
             </div>
             <div class="modal-body space-y-4">
-                <p class="text-sm font-semibold text-[var(--text-primary)]">Doctor: <span id="modal-doctor-name" class="font-normal"></span></p>
-                <p class="text-sm font-semibold text-[var(--text-primary)]">Time: <span id="modal-appointment-time" class="font-normal"></span></p>
-                <div id="call-status-container" class="p-3 rounded-lg bg-[var(--bg-main)] mt-2"><p id="call-status-message" class="text-sm"></p></div>
-                <div id="ready-call-details" class="hidden flex flex-col items-center mt-4">
-                    <div class="bg-white p-2 rounded"><canvas id="qr-code-canvas"></canvas></div>
-                    <a id="modal-call-link" href="#" class="text-sm mt-2 text-[var(--primary-color)] underline">Open Link</a>
+                <p class="text-sm font-semibold text-[var(--text-primary)]">Doctor: <span id="modal-doctor-name" class="font-normal text-[var(--text-secondary)]"></span></p>
+                <p class="text-sm font-semibold text-[var(--text-primary)]">Date: <span id="modal-appointment-date" class="font-normal text-[var(--text-secondary)]"></span> at <span id="modal-appointment-time" class="font-normal text-[var(--text-secondary)]"></span></p>
+
+                <div id="call-status-container" class="call-status-container p-4 rounded-lg bg-[var(--bg-main)] mt-4">
+                    <p id="call-status-message" class="text-sm font-medium text-[var(--text-secondary)]"></p>
                 </div>
-                <button id="modal-join-button" class="action-btn primary w-full mt-4" disabled>Join Room</button>
+                <div id="ready-call-details" class="hidden flex flex-col items-center justify-center space-y-4 mt-6">
+                    <div class="qr-code-container rounded-lg p-2 bg-[var(--text-primary)]">
+                        <canvas id="qr-code-canvas"></canvas>
+                    </div>
+                    <p class="text-sm text-[var(--text-secondary)] text-center">Scan the QR code or use the link below to join the call.</p>
+                    <div class="call-link-container text-center text-sm font-medium">
+                        <a id="modal-call-link" href="#" class="text-[var(--primary-color)] hover:underline"></a>
+                    </div>
+                </div>
+                <button id="modal-join-button" class="action-btn primary join-button mt-6 w-full flex items-center justify-center disabled:cursor-not-allowed disabled" disabled>Join Room</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="patient-notes-modal">
-        <div class="modal-container rounded-2xl p-6 shadow-2xl w-[90%] max-w-[520px]">
-             <div class="modal-header flex justify-between items-center mb-4"><h3 class="text-xl font-semibold text-[var(--text-primary)]">Summary</h3><button class="modal-close-btn text-2xl">&times;</button></div>
-             <div class="modal-body"><div id="notes-modal-notes" class="text-sm whitespace-pre-wrap"></div></div>
-             <div class="modal-footer mt-4"><button class="action-btn primary w-full" id="downloadSummaryBtn">Download</button></div>
+        <div class="modal-container rounded-2xl p-8 shadow-2xl w-[90%] max-w-[520px]">
+            <div class="modal-header flex justify-between items-center mb-6 pb-4 border-b border-[var(--border-color)]">
+                <h3 class="text-2xl font-semibold text-[var(--text-primary)] m-0">Consultation Summary</h3>
+                <button class="modal-close-btn text-2xl text-[var(--text-secondary)] hover:text-[var(--ui-danger)] transition-all duration-300">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="notes-details space-y-2 mb-6">
+                    <p class="text-sm font-semibold text-[var(--text-primary)]">Doctor: <span id="notes-modal-doctor-name" class="font-normal text-[var(--text-secondary)]"></span></p>
+                    <p class="text-sm font-semibold text-[var(--text-primary)]">Specialty: <span id="notes-modal-specialty" class="font-normal text-[var(--text-secondary)]"></span></p>
+                    <p class="text-sm font-semibold text-[var(--text-primary)]">Date: <span id="notes-modal-date" class="font-normal text-[var(--text-secondary)]"></span></p>
+                </div>
+                <div class="notes-content-container p-4 rounded-lg bg-[var(--bg-main)]">
+                    <p class="text-sm font-semibold text-[var(--text-primary)] mb-2"><strong id="notes-label">Doctor's Diagnosis:</strong></p>
+                    <div id="notes-modal-notes" class="doctor-notes-content text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap"></div>
+                </div>
+            </div>
+            <div class="modal-footer flex justify-end gap-3 mt-8">
+                <button type="button" class="action-btn primary" id="downloadSummaryBtn">Download Summary</button>
+            </div>
         </div>
     </div>
-    
-    <div class="modal-overlay" id="reschedule-response-modal">
-        <div class="modal-container rounded-2xl p-6 shadow-2xl w-[90%] max-w-[520px]">
-             <div class="modal-header flex justify-between items-center mb-4"><h3 class="text-xl font-semibold text-[var(--text-primary)]">Reschedule</h3><button class="modal-close-btn text-2xl">&times;</button></div>
+
+    <div class="modal-overlay" id="change-password-modal">
+         <div class="modal-container rounded-2xl p-8 shadow-2xl w-[90%] max-w-[520px]">
+             <div class="modal-header flex justify-between items-center mb-6 pb-4 border-b border-[var(--border-color)]">
+                 <h3 class="text-2xl font-semibold text-[var(--text-primary)] m-0">Change Password</h3>
+                 <button class="modal-close-btn text-2xl text-[var(--text-secondary)] hover:text-[var(--ui-danger)] transition-all duration-300">&times;</button>
+             </div>
              <div class="modal-body">
-                 <p class="text-sm">New time proposed: <strong class="text-[var(--primary-color)]"><span id="resched-modal-new-datetime"></span></strong></p>
+                 <form id="change-password-form">
+                     <div class="form-group mb-5">
+                         <label for="current-password" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Current Password</label>
+                         <input type="password" id="current-password" required class="form-input">
+                     </div>
+                     <div class="form-group mb-5">
+                         <label for="new-password" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">New Password</label>
+                         <input type="password" id="new-password" required minlength="8" class="form-input">
+                         <small class="form-text block mt-1 text-xs text-[var(--text-secondary)]">Password must be at least 8 characters long.</small>
+                     </div>
+                     <div class="form-group mb-5">
+                         <label for="confirm-new-password" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Confirm New Password</label>
+                         <input type="password" id="confirm-new-password" required class="form-input">
+                     </div>
+                     <div class="modal-footer flex justify-end gap-3 mt-8">
+                         <button type="submit" class="action-btn primary" id="confirm-password-change-btn">Update Password</button>
+                     </div>
+                 </form>
              </div>
-             <div class="modal-footer flex flex-col md:flex-row gap-2 mt-6">
-                 <button id="accept-reschedule-btn" class="action-btn primary flex-1">Accept</button>
-                 <button id="propose-new-time-btn" class="action-btn secondary flex-1">Propose</button>
-                 <button id="reject-reschedule-btn" class="action-btn danger flex-1">Reject</button>
-             </div>
+         </div>
+     </div>
+
+    <div class="modal-overlay" id="reschedule-response-modal">
+        <div class="modal-container rounded-2xl p-8 shadow-2xl w-[90%] max-w-[520px] relative">
+            <button class="modal-close-btn text-2xl text-[var(--text-secondary)] hover:text-[var(--ui-danger)] transition-all duration-300 absolute top-4 right-6">&times;</button>
+            <div class="modal-header flex justify-between items-center mb-6 pb-4 border-b border-[var(--border-color)]">
+                <h3 class="text-2xl font-semibold text-[var(--text-primary)] m-0">Reschedule Request</h3>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-[var(--text-secondary)] leading-relaxed"><strong>Dr. <span id="resched-modal-doctor-name"></span></strong> has proposed a new time for your appointment about <strong>"<span id="resched-modal-subject"></span>"</strong>.</p>
+                <div class="reschedule-details mt-4 p-4 rounded-lg bg-[var(--bg-main)]">
+                    <p class="text-sm font-semibold text-[var(--text-primary)]">Proposed new time:</p>
+                    <strong class="text-lg text-[var(--primary-color)]"><span id="resched-modal-new-datetime"></span></strong>
+                    <p id="resched-modal-reason-container" style="display:none;" class="mt-2 text-sm text-[var(--text-secondary)]">Reason: <span id="resched-modal-reason"></span></p>
+                </div>
+                <p class="mt-4 text-sm font-medium text-[var(--text-primary)]">Do you accept this new time?</p>
+            </div>
+            <div class="modal-footer flex flex-wrap justify-end gap-3 mt-8">
+                <button id="accept-reschedule-btn" class="action-btn primary">Accept New Time</button>
+                <button id="propose-new-time-btn" class="action-btn secondary">Suggest Another</button>
+                <button id="reject-reschedule-btn" class="action-btn danger">Reject</button>
+            </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="propose-new-time-modal">
-        <div class="modal-container rounded-2xl p-6 w-[90%] max-w-[520px]">
-            <h3 class="text-xl font-semibold mb-4">Propose Time</h3>
-            <form id="propose-new-time-form">
-                <input type="date" id="propose-date" required class="form-input mb-3">
-                <select id="propose-time" required class="form-input mb-3"><option value="09:00:00">9:00 AM</option><option value="14:00:00">2:00 PM</option></select>
-                <button type="submit" class="action-btn primary w-full">Submit</button>
-            </form>
-            <button class="modal-close-btn absolute top-4 right-6 text-2xl">&times;</button>
-        </div>
-    </div>
+         <div class="modal-container rounded-2xl p-8 shadow-2xl w-[90%] max-w-[520px] relative">
+             <button class="modal-close-btn text-2xl text-[var(--text-secondary)] hover:text-[var(--ui-danger)] transition-all duration-300 absolute top-4 right-6">&times;</button>
+             <div class="modal-header flex justify-between items-center mb-6 pb-4 border-b border-[var(--border-color)]">
+                 <h3 class="text-2xl font-semibold text-[var(--text-primary)] m-0">Propose a New Time</h3>
+             </div>
+             <div class="modal-body">
+                 <form id="propose-new-time-form">
+                     <div class="form-group mb-5">
+                         <label for="propose-date" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Your Preferred Date</label>
+                         <input type="date" id="propose-date" required class="form-input">
+                     </div>
+                     <div class="form-group mb-5">
+                         <label for="propose-time" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Your Preferred Time</label>
+                         <select id="propose-time" required class="form-input">
+                             <option value="" disabled selected>Select a time</option>
+                             <optgroup label="Morning">
+                                 <option value="08:00:00">8:00 AM</option>
+                                 <option value="08:30:00">8:30 AM</option>
+                                 <option value="09:00:00">9:00 AM</option>
+                                 <option value="09:30:00">9:30 AM</option>
+                                 <option value="10:00:00">10:00 AM</option>
+                                 <option value="10:30:00">10:30 AM</option>
+                                 <option value="11:00:00">11:00 AM</option>
+                                 <option value="11:30:00">11:30 AM</option>
+                             </optgroup>
+                             <optgroup label="Afternoon">
+                                 <option value="13:00:00">1:00 PM</option>
+                                 <option value="13:30:00">1:30 PM</option>
+                                 <option value="14:00:00">2:00 PM</option>
+                                 <option value="14:30:00">2:30 PM</option>
+                                 <option value="15:00:00">3:00 PM</option>
+                                 <option value="15:30:00">3:30 PM</option>
+                                 <option value="16:00:00">4:00 PM</option>
+                                 <option value="16:30:00">4:30 PM</option>
+                             </optgroup>
+                         </select>
+                     </div>
+                     <div class="modal-footer flex justify-end gap-3 mt-8">
+                         <button type="submit" class="action-btn primary">Submit Proposal</button>
+                     </div>
+                 </form>
+             </div>
+         </div>
+     </div>
 
-    <header class="header bg-[var(--bg-element)]">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <button class="sidebar-toggle text-2xl text-[var(--text-primary)] lg:hidden">&#9776;</button>
-                <div class="flex flex-col">
-                    <h3 class="text-lg font-semibold text-[var(--text-primary)]">Hi, <span id="patient-name-banner">User</span>!</h3>
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal-container rounded-2xl p-8 shadow-2xl w-[90%] max-w-[520px]">
+            <div class="modal-header flex justify-between items-center mb-6 pb-4 border-b border-[var(--border-color)]">
+                <h3 class="text-2xl font-semibold text-[var(--text-primary)] m-0">Help & Support</h3>
+                <button class="modal-close-btn text-2xl text-[var(--text-secondary)] hover:text-[var(--ui-danger)] transition-all duration-300">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-[var(--text-secondary)] leading-relaxed">Welcome to the help center. How can we assist you?</p>
+                <div class="help-options mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button id="contact-support-btn" class="action-btn secondary flex items-center justify-center gap-2"><i class="fas fa-headset text-lg"></i> Contact</button>
+                    <button id="send-feedback-btn" class="action-btn secondary flex items-center justify-center gap-2"><i class="fas fa-comment-dots text-lg"></i> Feedback</button>
+                    <button id="faq-btn" class="action-btn secondary flex items-center justify-center gap-2"><i class="fas fa-question-circle text-lg"></i> View FAQ</button>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <button id="theme-toggle-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--primary-color)]"></button>
-                <div class="header-user w-10 h-10 rounded-full overflow-hidden border border-[var(--border-color)]">
-                    <img src="/images/default-avatar.png" alt="Avatar" class="user-avatar w-full h-full object-cover">
+        </div>
+    </div>
+    <header class="header p-4 flex justify-between items-center z-[999] bg-[var(--bg-element)] mx-4 mt-4 lg:mx-0 lg:mt-0 lg:fixed lg:top-0 lg:left-[280px] lg:w-[calc(100%-280px)]">
+        <div class="header-left flex items-center gap-4">
+            <button class="sidebar-toggle bg-none border-none text-2xl text-[var(--text-primary)] cursor-pointer lg:hidden" aria-label="Open sidebar" aria-expanded="false">&#9776;</button>
+            <div class="header-welcome flex flex-col">
+                <h3 class="text-xl font-semibold text-[var(--text-primary)] m-0">Welcome back, <span id="patient-name-banner">Patient</span>!</h3>
+            </div>
+        </div>
+        <div class="header-right flex items-center gap-2">
+            <button id="theme-toggle-btn" class="header-icon-btn w-11 h-11 rounded-full text-[var(--text-secondary)] transition-all duration-200 hover:text-[var(--primary-color)] flex items-center justify-center" aria-label="Toggle theme">
+                 </button>
+            <button class="header-icon-btn w-11 h-11 rounded-full text-[var(--text-secondary)] transition-all duration-200 hover:text-[var(--primary-color)] flex items-center justify-center" id="help-toggle-btn">
+                <i class="fas fa-question-circle text-lg"></i>
+            </button>
+            <button class="header-icon-btn relative w-11 h-11 rounded-full text-[var(--text-secondary)] transition-all duration-200 hover:text-[var(--primary-color)] flex items-center justify-center">
+                <i class="fas fa-bell text-lg"></i>
+                <span class="notification-dot absolute top-2.5 right-2.5 w-2 h-2 bg-[var(--ui-danger)] rounded-full border border-[var(--bg-element)]"></span>
+            </button>
+            <div class="header-user flex items-center cursor-pointer p-1 rounded-xl transition-all duration-200 gap-3">
+                <img src="/images/default-avatar.png" alt="User Avatar" class="user-avatar w-10 h-10 rounded-full object-cover">
+                <div class="user-info-text flex-col text-left leading-tight hidden lg:flex">
+                    <span id="header-username" class="font-semibold text-[var(--text-primary)] text-base">Patient</span>
+                    <small class="text-sm text-[var(--text-secondary)]">Account</small>
                 </div>
             </div>
         </div>
     </header>
-
     <div class="layout-wrapper flex w-full flex-grow lg:mx-0">
-        <aside class="sidebar p-6 flex flex-col">
-            <div class="sidebar-logo text-2xl font-bold text-[var(--text-primary)] mb-8 text-center">Tele<span class="text-[var(--accent-color)]">Consult</span></div>
-            <ul class="sidebar-nav list-none p-0 m-0 flex flex-col gap-2">
-                <li><a href="#" class="nav-link active flex items-center p-3 rounded-xl" data-view="dashboard"><i class="fas fa-home mr-3 w-6 text-center"></i>Dashboard</a></li>
-                <li><a href="#" class="nav-link flex items-center p-3 rounded-xl" id="requestAppointmentLink"><i class="fas fa-calendar-plus mr-3 w-6 text-center"></i>Request</a></li>
-                <li><a href="#" class="nav-link flex items-center p-3 rounded-xl" data-view="my-health"><i class="fas fa-notes-medical mr-3 w-6 text-center"></i>History</a></li>
-                <li><a href="#" class="nav-link flex items-center p-3 rounded-xl" data-view="my-profile"><i class="fas fa-user mr-3 w-6 text-center"></i>Profile</a></li>
-                <li><a href="#" class="nav-link flex items-center p-3 rounded-xl" data-view="messages"><i class="fas fa-comment-dots mr-3 w-6 text-center"></i>Messages</a></li>
-                <li class="mt-8"><a href="#" id="logoutBtn" class="nav-link flex items-center p-3 rounded-xl text-[var(--ui-danger)]"><i class="fas fa-sign-out-alt mr-3 w-6 text-center"></i>Logout</a></li>
+        <aside class="sidebar p-6 flex flex-col h-screen fixed top-0 z-[1000] transition-transform duration-300 w-72 min-w-72 transform -translate-x-full lg:translate-x-0">
+            <div class="sidebar-logo text-3xl font-bold text-[var(--text-primary)] mb-10 text-center transition-all duration-200 hover:scale-105">Tele<span class="text-[var(--accent-color)]">Consult</span></div>
+            <ul class="sidebar-nav w-full list-none p-0 m-0 flex flex-col flex-grow">
+                <li><a href="#" class="nav-link active flex items-center p-3 mb-2 no-underline rounded-xl" data-view="dashboard"><i class="fas fa-home mr-4 text-xl min-w-[24px] text-center"></i>Dashboard</a></li>
+                <li><a href="#" class="nav-link flex items-center p-3 mb-2 no-underline rounded-xl" id="requestAppointmentLink"><i class="fas fa-calendar-plus mr-4 text-xl min-w-[24px] text-center"></i>Request Appointment</a></li>
+                <li><a href="#" class="nav-link flex items-center p-3 mb-2 no-underline rounded-xl" data-view="my-health"><i class="fas fa-notes-medical mr-4 text-xl min-w-[24px] text-center"></i>Consultation History</a></li>
+                <li><a href="#" class="nav-link flex items-center p-3 mb-2 no-underline rounded-xl" data-view="my-profile"><i class="fas fa-user-circle mr-4 text-xl min-w-[24px] text-center"></i>My Profile</a></li>
+                <li><a href="#" class="nav-link flex items-center p-3 mb-2 no-underline rounded-xl" data-view="messages"><i class="fas fa-comment-dots mr-4 text-xl min-w-[24px] text-center"></i>Messages</a></li>
+                <li class="logout-li mt-auto"><a href="#" id="logoutBtn" class="nav-link flex items-center p-3 mb-2 bg-[rgba(220,53,69,0.2)] text-[var(--ui-danger)] no-underline font-semibold rounded-xl hover:bg-[var(--ui-danger)] hover:text-white"><i class="fas fa-sign-out-alt mr-4 text-xl min-w-[24px] text-center"></i>Logout</a></li>
             </ul>
         </aside>
-        <div class="overlay fixed inset-0 bg-black/50 z-[998] lg:hidden invisible opacity-0"></div>
+        <div class="overlay fixed top-0 left-0 w-full h-full bg-black/50 opacity-0 invisible z-[998] lg:hidden"></div>
 
-        <div class="main-content-wrapper w-full">
-            <main class="main-content w-full max-w-7xl mx-auto">
-                <h1 id="main-header-title" class="text-2xl font-bold text-[var(--text-primary)] mb-6 hidden md:block">Dashboard</h1>
-                
-                <div id="views-container" class="flex-grow flex flex-col h-full">
-                    
+        <div class="main-content-wrapper w-full flex flex-col">
+            <main class="main-content flex-grow p-6 flex flex-col max-w-7xl mx-auto w-full">
+                <h1 id="main-header-title" class="text-3xl font-semibold text-[var(--text-primary)] m-0 mb-6">Dashboard</h1>
+                <div id="views-container" class="flex-grow flex flex-col">
                     <div id="dashboard-view" class="view-container">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div class="card">
-                                <h2 class="text-lg font-semibold text-[var(--text-primary)] mb-4 pb-2 border-b border-[var(--border-color)]">Upcoming</h2>
-                                <ul class="list-none p-0 space-y-3" id="upcoming-appointments-list">
-                                    <li class="text-center p-4 text-sm"><i class="fas fa-spinner fa-spin"></i> Loading...</li>
-                                </ul>
-                            </div>
-                            <div class="card">
-                                <h2 class="text-lg font-semibold text-[var(--text-primary)] mb-4 pb-2 border-b border-[var(--border-color)]">Pending</h2>
-                                <ul class="list-none p-0 space-y-3" id="pending-appointments-list"></ul>
-                            </div>
-                            <div class="card">
-                                <h2 class="text-lg font-semibold text-[var(--text-primary)] mb-4 pb-2 border-b border-[var(--border-color)]">Reschedule</h2>
-                                <ul class="list-none p-0 space-y-3" id="reschedule-requests-list"></ul>
+                        <div class="dashboard-appointments">
+                            <div class="dashboard-appointments-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div class="card">
+                                    <div class="card-header flex justify-between items-center pb-4 mb-5 border-b border-[var(--border-color)]">
+                                        <h2 class="text-lg font-semibold text-[var(--text-primary)] m-0">Upcoming Appointments</h2>
+                                    </div>
+                                    <div class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="upcoming-appointments-list" role="list">
+                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
+                                            <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
+                                            <p class="text-sm mt-2">Loading...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header flex justify-between items-center pb-4 mb-5 border-b border-[var(--border-color)]">
+                                        <h2 class="text-lg font-semibold text-[var(--text-primary)] m-0">Pending Requests</h2>
+                                    </div>
+                                    <div class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="pending-appointments-list" role="list">
+                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
+                                            <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
+                                            <p class="text-sm mt-2">Loading...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header flex justify-between items-center pb-4 mb-5 border-b border-[var(--border-color)]">
+                                        <h2 class="text-lg font-semibold text-[var(--text-primary)] m-0">Reschedule Requests</h2>
+                                    </div>
+                                    <div class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="reschedule-requests-list" role="list">
+                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
+                                            <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
+                                            <p class="text-sm mt-2">Loading...</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
                     <div id="my-health-view" class="view-container hidden">
-                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="consultation-history-list"></div>
+                        <div class="consultation-history-container">
+                            <div class="consultation-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="consultation-history-list">
+                                <p>Loading history...</p>
+                            </div>
+                        </div>
                     </div>
-
                     <div id="my-profile-view" class="view-container hidden">
-                         <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
-                             <div class="card flex flex-col items-center text-center">
-                                 <div class="w-32 h-32 rounded-full overflow-hidden mb-4 relative" id="profile-picture-uploader">
-                                     <img src="/images/default-avatar.png" class="profile-avatar w-full h-full object-cover">
-                                 </div>
-                                 <h3 class="text-lg font-bold text-[var(--text-primary)]" id="profile-full-name">User</h3>
-                                 <p class="text-sm text-[var(--text-secondary)]" id="profile-contact">...</p>
-                             </div>
-                             <div class="card">
-                                 <h3 class="text-lg font-semibold mb-4">Edit Details</h3>
-                                 <form id="edit-profile-form" class="space-y-4">
-                                     <div><label class="text-sm block mb-1">Email</label><input type="email" id="profile-email" class="form-input"></div>
-                                     <div><label class="text-sm block mb-1">Phone</label><input type="tel" id="profile-phone" class="form-input"></div>
-                                     <button type="submit" class="action-btn primary">Save</button>
-                                 </form>
-                             </div>
-                         </div>
-                    </div>
-
-                    <div id="messages-view" class="view-container hidden h-full">
-                        <div class="messages-layout" id="messages-layout">
-                            <div class="messages-sidebar card flex flex-col p-4">
-                                <div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
-                                    <h3 class="text-lg font-semibold text-[var(--text-primary)]">Chats</h3>
+                        <div class="profile-layout grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 items-start">
+                            <div class="profile-info-card card flex flex-col items-center text-center">
+                                <div class="profile-picture-section relative inline-block cursor-pointer w-36 h-36 rounded-full overflow-hidden mb-6 border-4 border-[var(--bg-element)]" id="profile-picture-uploader">
+                                    <img src="/images/default-avatar.png" alt="Patient Avatar" class="profile-avatar w-full h-full rounded-full object-cover">
+                                    <div class="profile-picture-overlay absolute top-0 left-0 w-full h-full bg-[var(--bg-element)]/60 text-white flex flex-col justify-center items-center rounded-full">
+                                        <i class="fas fa-camera text-2xl mb-2"></i>
+                                        <span class="font-semibold text-sm">Change</span>
+                                    </div>
+                                    <input type="file" id="profile-picture-input" accept="image/png, image/jpeg, image/gif" hidden>
                                 </div>
-                                <div class="flex flex-col gap-2 overflow-y-auto" id="doctor-conversations-list">
-                                    <p class="text-center text-sm text-[var(--text-secondary)] mt-4">Loading...</p>
+                                <div class="profile-details-section flex flex-col gap-4 w-full">
+                                    <div class="profile-info-item text-center"> <span class="info-label block text-sm font-semibold text-[var(--text-primary)] mb-1">Full Name:</span> <span class="info-value block text-base text-[var(--text-secondary)]" id="profile-full-name">Loading...</span> </div>
+                                    <div class="profile-info-item text-center"> <span class="info-label block text-sm font-semibold text-[var(--text-primary)] mb-1">Age:</span> <span class="info-value block text-base text-[var(--text-secondary)]" id="profile-age">N/A</span> </div>
+                                    <div class="profile-info-item text-center"> <span class="info-label block text-sm font-semibold text-[var(--text-primary)] mb-1">Address:</span> <span class="info-value block text-base text-[var(--text-secondary)]" id="profile-address">N/A</span> </div>
+                                    <div class="profile-info-item text-center"> <span class="info-label block text-sm font-semibold text-[var(--text-primary)] mb-1">Contact Number:</span> <span class="info-value block text-base text-[var(--text-secondary)]" id="profile-contact">N/A</span> </div>
                                 </div>
                             </div>
-
-                            <div class="messages-content card flex flex-col p-0 overflow-hidden">
-                                <div class="flex items-center p-3 border-b border-[var(--border-color)] bg-[var(--bg-element)]" id="messages-header">
-                                    <button id="back-to-doctors-btn" class="mr-3 text-[var(--text-primary)] w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--bg-main)]">
-                                        <i class="fas fa-arrow-left"></i>
-                                    </button>
-                                    <h3 class="text-base font-semibold text-[var(--text-primary)] truncate">Select a conversation</h3>
+                            <div class="profile-forms-container flex flex-col gap-8">
+                                <div class="edit-profile-card card">
+                                    <h3 class="text-xl font-semibold text-[var(--text-primary)] mt-0 mb-6">Edit Profile Details</h3>
+                                    <form id="edit-profile-form">
+                                        <div class="form-group mb-5"> <label for="profile-username" class="block mb-2 text-sm font-medium text-[var(--text-secondary)]">Username</label> <input type="text" id="profile-username" class="form-input" disabled> </div>
+                                        <div class="form-group mb-5"> <label for="profile-email" class="block mb-2 text-sm font-medium text-[var(--text-secondary)]">Email</label> <input type="email" id="profile-email" class="form-input"> </div>
+                                        <div class="form-group mb-5"> <label for="profile-phone" class="block mb-2 text-sm font-medium text-[var(--text-secondary)]">Phone</label> <input type="tel" id="profile-phone" class="form-input"> </div>
+                                        <button type="submit" class="action-btn primary w-auto">Save Changes</button>
+                                    </form>
                                 </div>
-                                
-                                <div class="message-list-container" id="message-list-container">
-                                    <div class="flex flex-col items-center justify-center h-full text-[var(--text-secondary)] opacity-50">
-                                        <i class="fas fa-comments text-4xl mb-2"></i>
-                                        <p class="text-sm">Select a doctor to start chatting</p>
-                                    </div>
+                                <div class="security-card card">
+                                    <h3 class="text-xl font-semibold text-[var(--text-primary)] mt-0 mb-6">Security</h3>
+                                    <button type="button" class="action-btn primary w-auto" id="change-password-btn">Change Password</button>
                                 </div>
-                                
-                                <div class="message-input-form-container">
-                                    <form class="message-input-form flex items-center p-2 rounded-xl gap-2" id="patient-message-input-form" style="display: none;">
-                                        <input type="text" id="patient-message-input" placeholder="Type a message..." required class="flex-grow p-2 border-none bg-transparent text-sm focus:outline-none text-[var(--text-primary)]">
-                                        <button type="submit" class="action-btn primary w-10 h-10 rounded-lg flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="messages-view" class="view-container hidden h-full flex flex-col">
+                        <div class="messages-layout grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 h-full min-h-0">
+                            <div class="messages-sidebar card flex flex-col h-full p-4">
+                                <div class="messages-sidebar-header flex justify-between items-center mb-5 pb-4 border-b border-[var(--border-color)]"> <h3 class="m-0 text-xl font-semibold text-[var(--text-primary)]">Doctors</h3> </div>
+                                <div class="doctor-list flex flex-col gap-3 overflow-y-auto pr-2" id="doctor-conversations-list"> <p class="placeholder-text-center text-center text-sm text-[var(--text-secondary)] m-auto">Loading conversations...</p> </div>
+                            </div>
+                            <div class="messages-content card flex flex-col h-full overflow-hidden p-0 min-h-0">
+                                <div class="messages-header p-4 border-b border-[var(--border-color)] flex-shrink-0" id="messages-header"> <h3 class="m-0 text-lg font-semibold text-[var(--text-primary)]">Select a conversation</h3> </div>
+                                <div class="message-list-container min-h-0" id="message-list-container"> <p class="placeholder-text-center text-center text-sm text-[var(--text-secondary)] m-auto">Select a doctor to view messages.</p> </div>
+                                <div class="message-input-form-container flex-shrink-0">
+                                    <form class="message-input-form flex items-center p-2 rounded-xl gap-3" id="patient-message-input-form" style="display: none;">
+                                        <input type="text" id="patient-message-input" placeholder="Type your message..." required class="flex-grow p-2 border-none bg-transparent text-sm min-w-0 focus:outline-none text-[var(--text-primary)]">
+                                        <button type="submit" class="action-btn primary send-btn p-3 text-lg rounded-lg flex items-center justify-center" id="patient-send-message-btn"> <i class="fas fa-paper-plane m-0"></i> </button>
                                     </form>
                                 </div>
                             </div>
@@ -508,61 +728,53 @@
             </main>
         </div>
     </div>
-
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
     <script>
         'use strict';
+        // This script block only handles theme switching.
         document.addEventListener('DOMContentLoaded', () => {
-            // Theme Logic
             const themeToggleBtn = document.getElementById('theme-toggle-btn');
-            const sunIcon = '<i class="fas fa-sun"></i>';
-            const moonIcon = '<i class="fas fa-moon"></i>';
-
-            function applyTheme(theme) {
-                if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.classList.remove('light');
-                    if (themeToggleBtn) themeToggleBtn.innerHTML = sunIcon;
-                } else {
-                    document.documentElement.classList.add('light');
-                    document.documentElement.classList.remove('dark');
-                    if (themeToggleBtn) themeToggleBtn.innerHTML = moonIcon;
-                }
-            }
             if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', () => {
+                const sunIcon = '<i class="fas fa-sun text-lg"></i>';
+                const moonIcon = '<i class="fas fa-moon text-lg"></i>';
+
+                function applyTheme(theme) {
+                    if (theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                        document.documentElement.classList.remove('light');
+                        if (themeToggleBtn) themeToggleBtn.innerHTML = sunIcon;
+                    } else {
+                        document.documentElement.classList.add('light');
+                        document.documentElement.classList.remove('dark');
+                        if (themeToggleBtn) themeToggleBtn.innerHTML = moonIcon;
+                    }
+                }
+
+                function toggleTheme() {
                     const isDark = document.documentElement.classList.contains('dark');
                     const newTheme = isDark ? 'light' : 'dark';
                     localStorage.setItem('theme', newTheme);
                     applyTheme(newTheme);
-                });
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                applyTheme(savedTheme);
-            }
-
-            // Mobile Chat UI Logic
-            const messagesLayout = document.getElementById('messages-layout');
-            const doctorList = document.getElementById('doctor-conversations-list');
-            const backBtn = document.getElementById('back-to-doctors-btn');
-
-            // When a doctor is clicked in the list (Delegate event since items are dynamic)
-            doctorList.addEventListener('click', (e) => {
-                if (e.target.closest('.doctor-card')) {
-                    // Add class to layout to hide sidebar and show content on mobile
-                    messagesLayout.classList.add('mobile-chat-active');
                 }
-            });
 
-            // When back button is clicked
-            if (backBtn) {
-                backBtn.addEventListener('click', () => {
-                    messagesLayout.classList.remove('mobile-chat-active');
-                });
+                themeToggleBtn.addEventListener('click', toggleTheme);
+
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                let currentTheme = 'light'; // Default
+                if (savedTheme) {
+                    currentTheme = savedTheme;
+                } else if (prefersDark) {
+                    currentTheme = 'dark';
+                }
+                applyTheme(currentTheme); // Apply initial theme
             }
         });
     </script>
+
     <script src="js/patient-dashboard.js"></script> 
+
 </body>
 </html>
