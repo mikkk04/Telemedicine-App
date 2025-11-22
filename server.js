@@ -502,9 +502,9 @@ async function loadAppointmentsForDoctorDashboard(doctorName, specialty) {
         LEFT JOIN users AS patient ON app.patientName = patient.username
         LEFT JOIN users AS doctor ON app.doctorName = doctor.username
         WHERE (app.doctorName = ? OR (app.specialty = ? AND app.status = 'Pending'))
-          AND app.status NOT IN ('Completed', 'Rejected', 'Cancelled')
         ORDER BY app.created_at DESC
     `.trim();
+    // Removed: AND app.status NOT IN ('Completed', 'Rejected', 'Cancelled')
     try {
         const [rows] = await pool.query(sql, [doctorName, specialty]);
         return rows;
