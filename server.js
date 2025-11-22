@@ -459,7 +459,7 @@ async function loadAppointmentsForPatient(patientName) {
             doctor.profilePicture AS doctorProfilePic
         FROM appointments AS app
         LEFT JOIN users AS doctor ON app.doctorName = doctor.username
-        WHERE app.patientName = ?  // <--- FIXED: Removed the status filter
+        WHERE app.patientName = ?  
         ORDER BY app.created_at DESC
     `.trim();
     try {
