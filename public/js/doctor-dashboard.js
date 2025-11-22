@@ -658,72 +658,60 @@ function renderMessagesView() {
     selectedAppointmentIdForChat = null; // Reset appointment ID when view loads
 }
 function renderPatientList(patients) {
-    const patientListEl = document.getElementById('patients-list-for-messaging'); if (!patientListEl) return; patientListEl.innerHTML = '';
-    if (!patients || patients.length === 0) { patientListEl.innerHTML = `<li class="text-center text-[var(--text-secondary)] p-4">No patient conversations found.</li>`; return; }
-    const defaultPatientAvatar = '/images/default-avatar.png'; // Make sure this path is correct
+    const patientListEl = document.getElementById('patients-list-for-messaging');
+    if (!patientListEl) return;
+    
+    // ⭐ FIX START: De-duplicate patients using Map
+    const uniquePatientsMap = new Map();
     patients.forEach(patient => {
+        // Uses the patientUsername as the definitive unique key
+        uniquePatientsMap.set(patient.patientUsername, patient); 
+    });
+    const uniquePatients = Array.from(uniquePatientsMap.values());
+    // ⭐ FIX END: uniquePatients list is now clean
+
+    patientListEl.innerHTML = ''; // Clear previous list
+
+    if (uniquePatients.length === 0) { 
+        patientListEl.innerHTML = `<li class="text-center text-[var(--text-secondary)] p-4">No patient conversations found.</li>`; 
+        return; 
+    }
+
+    const defaultPatientAvatar = '/images/default-avatar.png'; 
+    const storedSelectedDoctor = sessionStorage.getItem('selectedDoctorUsername'); 
+
+    uniquePatients.forEach(patient => {
         const profilePicSrc = patient.patientProfilePicture || defaultPatientAvatar;
         const li = document.createElement('li');
+        
+        // This is the active/hover styling class
         li.className = 'conversation-item flex items-center p-4 cursor-pointer transition-colors duration-200 border-l-4 border-transparent hover:bg-[rgba(var(--primary-rgb),0.05)]';
-        li.dataset.patientUsername = patient.patientUsername; // Store username for identification
+        li.dataset.patientUsername = patient.patientUsername;
+
         li.innerHTML = `
-            <img src="${profilePicSrc}" alt="${patient.patientName}'s profile picture" class="w-12 h-12 rounded-full mr-4 object-cover" onerror="this.onerror=null; this.src='${defaultPatientAvatar}';"> 
-            <div class="flex-grow overflow-hidden"> 
-                <div class="font-semibold truncate text-[var(--text-primary)]">${patient.patientName}</div> 
-                <div class="text-sm text-[var(--text-secondary)] truncate">Username: ${patient.patientUsername}</div> 
+            <img src="${profilePicSrc}" alt="${patient.patientName}'s profile picture" class="w-12 h-12 rounded-full mr-4 object-cover" onerror="this.onerror=null; this.src='${defaultPatientAvatar}';">  
+            <div class="flex-grow overflow-hidden">  
+                <div class="font-semibold truncate text-[var(--text-primary)]">${patient.patientName}</div>  
+                <div class="text-sm text-[var(--text-secondary)] truncate">Username: ${patient.patientUsername}</div>  
             </div>`;
-
-        li.addEventListener('click', () => {
-            selectedPatient = patient; // Store the clicked patient object
-            console.log(`[Patient Click] Selected patient: ${patient.patientUsername}. Finding relevant appointment...`);
-
-            // Find the most recent 'Accepted' or 'Completed' appointment with this patient
-            const relevantAppointment = allAppointments
-                .filter(app => {
-                    // Check both patientName (username) and patientFullName for robustness
-                    return (app.patientName === patient.patientUsername || app.patientFullName === patient.patientName) && 
-                           (app.status === 'Accepted' || app.status === 'Completed') &&
-                           app.doctorName === currentUsername; // Ensure it's appointment with *this* doctor
-                })
-                .sort((a, b) => {
-                    // Sort by date and time descending to get the most recent
-                     const dateA = new Date(`${a.appointmentDate.split('T')[0]}T${a.appointmentTime}`);
-                     const dateB = new Date(`${b.appointmentDate.split('T')[0]}T${b.appointmentTime}`);
-                     return dateB - dateA; // Most recent first
-                })[0]; // Get the first one (most recent)
-
-            if (relevantAppointment) {
-                selectedAppointmentIdForChat = relevantAppointment.id;
-                console.log(`[Patient Click] Found relevant appointment ID: ${selectedAppointmentIdForChat} (Status: ${relevantAppointment.status})`);
-            } else {
-                selectedAppointmentIdForChat = null;
-                console.warn(`[Patient Click] No 'Accepted' or 'Completed' appointment found for ${patient.patientName} with doctor ${currentUsername}. Messaging might not save correctly.`);
-                // Optionally alert the user or disable sending
-                // alert("Warning: No active or completed appointment found. Messages may not be saved to history.");
+        
+        // This attaches the necessary click handler that you defined elsewhere in the file (e.g., inside window.onload)
+        li.addEventListener('click', function(event) {
+            // Re-using the click handler delegation logic you set up in DOMContentLoaded
+            const conversationItem = event.currentTarget; 
+            if (conversationItem) {
+                 const doctorUsername = conversationItem.dataset.patientUsername; // Note: dataset is patientUsername here
+                 if (doctorUsername) {
+                      document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active', 'bg-[rgba(var(--primary-rgb),0.1)]', 'border-l-[var(--primary-color)]'));
+                      conversationItem.classList.add('active', 'bg-[rgba(var(--primary-rgb),0.1)]', 'border-l-[var(--primary-color)]');
+                      selectedPatient = patient; 
+                      sessionStorage.setItem('selectedDoctorUsername', doctorUsername); 
+                      // Assuming fetchAndRenderChatHistory exists and takes patientUsername:
+                      fetchAndRenderChatHistory(doctorUsername);
+                 }
             }
-
-            // Update UI
-            document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('bg-[rgba(var(--primary-rgb),0.1)]', 'border-l-[var(--primary-color)]'));
-            li.classList.add('bg-[rgba(var(--primary-rgb),0.1)]', 'border-l-[var(--primary-color)]');
-            document.getElementById('chat-header-name').textContent = patient.patientName;
-            const chatHeaderAvatar = document.getElementById('chat-header-avatar');
-            chatHeaderAvatar.src = profilePicSrc;
-            chatHeaderAvatar.onerror = () => { chatHeaderAvatar.src = defaultPatientAvatar; }; // Fallback
-            
-            // Fetch online status
-            socket.emit('user:get:online-status', { username: patient.patientUsername }, (response) => { 
-                const statusEl = document.getElementById('chat-header-status'); 
-                if (statusEl) statusEl.textContent = response?.isOnline ? 'Online' : 'Offline'; 
-            });
-            
-            // Switch views
-            document.getElementById('no-conversation-view').style.display = 'none';
-            document.getElementById('active-chat-view').style.display = 'flex'; // Use flex for layout
-            
-            // Fetch chat history
-            console.log(`[Patient Click] Requesting chat history for doctor: ${currentUsername}, patient: ${patient.patientUsername}`);
-            socket.emit('doctor:get:chat:history', { doctorUsername: currentUsername, patientUsername: patient.patientUsername });
         });
+
         patientListEl.appendChild(li);
     });
 }
