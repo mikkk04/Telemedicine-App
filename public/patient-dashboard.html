@@ -198,7 +198,15 @@
         html.dark select.form-input {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239299A8' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
         }
-
+        
+        /* ⭐ START DARK MODE SELECT FIX */
+        html.dark select,
+        html.dark textarea,
+        html.dark input[type="date"],
+        html.dark input[type="time"] {
+            color-scheme: dark;
+        }
+        /* ⭐ END DARK MODE SELECT FIX */
 
         /* Sidebar Nav */
         .sidebar-nav .nav-link { color: var(--text-secondary); font-weight: 500; transition: all 0.2s ease; position: relative; }
@@ -289,13 +297,14 @@
                 height: calc(100vh - 100px - 48px - 48px); /* Full height - header height - main content top padding - main content bottom padding */
             }
         }
+        
          /* Style for disabled button */
-         .action-btn.disabled, .action-btn:disabled {
-             opacity: 0.6;
-             cursor: not-allowed;
-             box-shadow: none;
-             /* Optional: remove hover effect for disabled */
-             box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+        .action-btn.disabled, .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+            /* Optional: remove hover effect for disabled */
+            box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
         }
         .action-btn.disabled:hover, .action-btn:disabled:hover {
             box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light); /* Keep inset on hover too if desired */
@@ -648,10 +657,10 @@
                                 <div class="messages-header p-4 border-b border-[var(--border-color)] flex-shrink-0" id="messages-header"> <h3 class="m-0 text-lg font-semibold text-[var(--text-primary)]">Select a conversation</h3> </div>
                                 <div class="message-list-container min-h-0" id="message-list-container"> <p class="placeholder-text-center text-center text-sm text-[var(--text-secondary)] m-auto">Select a doctor to view messages.</p> </div>
                                 <div class="message-input-form-container flex-shrink-0">
-                                     <form class="message-input-form flex items-center p-2 rounded-xl gap-3" id="patient-message-input-form" style="display: none;">
-                                         <input type="text" id="patient-message-input" placeholder="Type your message..." required class="flex-grow p-2 border-none bg-transparent text-sm min-w-0 focus:outline-none text-[var(--text-primary)]">
-                                         <button type="submit" class="action-btn primary send-btn p-3 text-lg rounded-lg flex items-center justify-center" id="patient-send-message-btn"> <i class="fas fa-paper-plane m-0"></i> </button>
-                                     </form>
+                                    <form class="message-input-form flex items-center p-2 rounded-xl gap-3" id="patient-message-input-form" style="display: none;">
+                                        <input type="text" id="patient-message-input" placeholder="Type your message..." required class="flex-grow p-2 border-none bg-transparent text-sm min-w-0 focus:outline-none text-[var(--text-primary)]">
+                                        <button type="submit" class="action-btn primary send-btn p-3 text-lg rounded-lg flex items-center justify-center" id="patient-send-message-btn"> <i class="fas fa-paper-plane m-0"></i> </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -710,5 +719,3 @@
 
 </body>
 </html>
-
-<!-- patient-dashboard.html -->
