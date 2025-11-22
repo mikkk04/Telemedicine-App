@@ -249,6 +249,30 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal('patient-notes-modal');
     }
 
+    // ⭐ FIX: Added this function to handle opening the reschedule modal
+    function openRescheduleResponseModal(appointment) {
+        selectedAppointmentForReschedule = appointment;
+        const modal = document.getElementById('reschedule-response-modal');
+        
+        if (modal) {
+            // Attempt to populate modal details if elements exist
+            const doctorNameEl = document.getElementById('reschedule-doctor-name');
+            const newTimeEl = document.getElementById('reschedule-new-time');
+            
+            if (doctorNameEl) {
+                doctorNameEl.textContent = `Dr. ${appointment.doctorName || 'N/A'}`;
+            }
+            
+            if (newTimeEl) {
+                const appDate = appointment.appointmentDate ? new Date(appointment.appointmentDate.split('T')[0] + 'T00:00:00') : null;
+                const formattedDate = appDate ? appDate.toLocaleDateString() : 'N/A';
+                newTimeEl.textContent = `${formattedDate} at ${appointment.appointmentTime}`;
+            }
+            
+            openModal('reschedule-response-modal');
+        }
+    }
+
     // --- Appointment Rendering Logic ---
     function renderDashboardAppointments() {
         console.log('[Patient][Render] Starting renderDashboardAppointments...'); // Log start
@@ -1139,5 +1163,3 @@ document.addEventListener('DOMContentLoaded', () => {
     setTomorrowAsMinDate('propose-date');
     // Initial fetch is now handled after socket connect + user:online
 });
-
-// patient-dashboard.js
