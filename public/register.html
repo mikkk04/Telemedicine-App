@@ -566,6 +566,11 @@
             }
 
             if (isFormValid) {
+                // ⭐ FIXED: Disable button to prevent duplicate submissions
+                registerBtn.disabled = true;
+                registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+                registerBtn.style.animation = 'none'; // Stop the pulse animation
+
                 const registrationData = {
                     fullname: document.getElementById('fullname').value,
                     dob: document.getElementById('dob').value,
@@ -587,6 +592,11 @@
 
                     if (response.success) {
                         window.location.href = '/';
+                    } else {
+                        // ⭐ FIXED: Re-enable button on failure
+                        registerBtn.disabled = false;
+                        registerBtn.innerHTML = 'Register';
+                        registerBtn.style.animation = 'pulse 1.5s infinite'; // Restart pulse if applicable
                     }
                 });
             } else {
@@ -596,5 +606,3 @@
     </script>
 </body>
 </html>
-
-register.html
