@@ -749,21 +749,30 @@ document.addEventListener('DOMContentLoaded', () => {
             renderDashboardAppointments();
 
             // Re-render other views ONLY if they are currently active
+appointments = newAppointments; // Update the local appointment data
+            console.log(`[Patient] Updated global appointments array (count: ${appointments.length}):`, JSON.stringify(appointments));
+
+
+            // ⭐ FIX 1: ALWAYS refresh the doctor contact list (Conversation Partners).
+            // This ensures that when an appointment is ACCEPTED, the Doctor immediately appears in the Messages sidebar.
+            console.log("[Patient] Always refreshing doctor conversation list...");
+            fetchPatientConversations(); 
+
+            // ⭐ FIX 2: Re-render Dashboard and check the History tab only if they are the active view.
+            renderDashboardAppointments(); // Re-render dashboard list always
+
             const currentView = document.querySelector('.view-container:not(.hidden)')?.id?.replace('-view', '');
             if (currentView === 'my-health') {
-                 console.log("[Patient] Also triggering renderConsultationHistory...");
-                 renderConsultationHistory();
-            } else if (currentView === 'messages') {
-                 console.log("[Patient] Also triggering fetchPatientConversations...");
-                 fetchPatientConversations(); // Rebuild doctor list based on new appointments
+                console.log("[Patient] Also triggering renderConsultationHistory...");
+                renderConsultationHistory();
             }
-             // Check if the call details modal is open and needs updating
+            
+            // Check if the call details modal is open and needs updating
             const callModal = document.getElementById('patient-call-details-modal');
             if (callModal && callModal.classList.contains('show')) {
                  const modalAppId = callModal.dataset.appointmentId;
                  const updatedAppointmentForModal = appointments.find(app => app.id == modalAppId);
                  if (updatedAppointmentForModal) {
-                    console.log(`[Patient] Updating open call modal for appointment ${modalAppId}`);
                     updateCallModalStatus(updatedAppointmentForModal); // Refresh modal status
                  }
             }
