@@ -515,12 +515,20 @@ async function loadAppointmentsForDoctorDashboard(doctorName, specialty) {
 }
 
 
+
 async function getDoctorPatients(doctorName) {
-    const sql = `SELECT DISTINCT p.username AS patientUsername, p.fullname AS patientName, p.profilePicture AS patientProfilePicture 
-                 FROM appointments AS a 
-                 INNER JOIN users AS p ON a.patientName = p.username 
-                 WHERE a.doctorName = ? AND a.status IN ('Accepted', 'Completed') 
-                 ORDER BY a.appointmentDate DESC, a.appointmentTime DESC;`.trim();
+    const sql = `
+        SELECT 
+            DISTINCT p.username AS patientUsername, 
+            p.fullname AS patientName, 
+            p.profilePicture AS patientProfilePicture,
+            a.appointmentDate,  /* <--- FIX ADDED */
+            a.appointmentTime   /* <--- FIX ADDED */
+        FROM appointments AS a 
+        INNER JOIN users AS p ON a.patientName = p.username 
+        WHERE a.doctorName = ? AND a.status IN ('Accepted', 'Completed') 
+        ORDER BY a.appointmentDate DESC, a.appointmentTime DESC;
+    `.trim();
     try {
         const [rows] = await pool.query(sql, [doctorName]);
         return rows;
@@ -529,7 +537,6 @@ async function getDoctorPatients(doctorName) {
         return [];
     }
 }
-
 async function getChatHistoryForDoctor(doctorUsername, patientUsername) {
     const sql = `SELECT ch.message, ch.file_url AS fileUrl, ch.timestamp, ch.username AS senderUsername, u.fullname AS senderName, ch.appointmentId FROM chat_history AS ch INNER JOIN appointments AS a ON ch.appointmentId = a.id INNER JOIN users AS u ON ch.username = u.username WHERE (a.doctorName = ? AND a.patientName = ?) ORDER BY ch.timestamp ASC;`.trim();
     try {
