@@ -47,6 +47,9 @@
 
             --shadow-light: rgba(78, 204, 163, 0.1); /* Use accent color for a subtle glow */
             --shadow-dark: rgba(0, 0, 0, 0.4);
+            
+            /* ⭐ CRITICAL FIX: Tells browser to render native controls (selects, scrollbars) in dark mode */
+            color-scheme: dark;
         }
 
         html { height: 100%; }
@@ -199,14 +202,13 @@
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239299A8' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
         }
         
-        /* ⭐ START DARK MODE SELECT FIX */
-        html.dark select,
-        html.dark textarea,
-        html.dark input[type="date"],
-        html.dark input[type="time"] {
-            color-scheme: dark;
+        /* ⭐ SELECT ELEMENT FIX */
+        /* This explicitly forces the options to have high contrast in dark mode */
+        html.dark select.form-input option, 
+        html.dark select.form-input optgroup {
+            background-color: var(--bg-element);
+            color: var(--text-primary);
         }
-        /* ⭐ END DARK MODE SELECT FIX */
 
         /* Sidebar Nav */
         .sidebar-nav .nav-link { color: var(--text-secondary); font-weight: 500; transition: all 0.2s ease; position: relative; }
@@ -330,7 +332,7 @@
                             <option value="" disabled selected>Select an expertise</option>
                             <option value="General">General</option>
                             <option value="Neurology">Neurology</option>
-                            </select>
+                        </select>
                     </div>
                     <div class="form-group mb-5">
                         <label for="appointment-date" class="block mb-2 text-sm font-semibold text-[var(--text-primary)]">Preferred Date</label>
@@ -341,16 +343,24 @@
                         <select id="appointment-time" required class="form-input">
                             <option value="" disabled selected>Select a time</option>
                             <optgroup label="Morning">
-                                <option value="08:00:00">8:00 AM</option> <option value="08:30:00">8:30 AM</option>
-                                <option value="09:00:00">9:00 AM</option> <option value="09:30:00">9:30 AM</option>
-                                <option value="10:00:00">10:00 AM</option><option value="10:30:00">10:30 AM</option>
-                                <option value="11:00:00">11:00 AM</option><option value="11:30:00">11:30 AM</option>
+                                <option value="08:00:00">8:00 AM</option>
+                                <option value="08:30:00">8:30 AM</option>
+                                <option value="09:00:00">9:00 AM</option>
+                                <option value="09:30:00">9:30 AM</option>
+                                <option value="10:00:00">10:00 AM</option>
+                                <option value="10:30:00">10:30 AM</option>
+                                <option value="11:00:00">11:00 AM</option>
+                                <option value="11:30:00">11:30 AM</option>
                             </optgroup>
                             <optgroup label="Afternoon">
-                                <option value="13:00:00">1:00 PM</option> <option value="13:30:00">1:30 PM</option>
-                                <option value="14:00:00">2:00 PM</option> <option value="14:30:00">2:30 PM</option>
-                                <option value="15:00:00">3:00 PM</option> <option value="15:30:00">3:30 PM</option>
-                                <option value="16:00:00">4:00 PM</option> <option value="16:30:00">4:30 PM</option>
+                                <option value="13:00:00">1:00 PM</option>
+                                <option value="13:30:00">1:30 PM</option>
+                                <option value="14:00:00">2:00 PM</option>
+                                <option value="14:30:00">2:30 PM</option>
+                                <option value="15:00:00">3:00 PM</option>
+                                <option value="15:30:00">3:30 PM</option>
+                                <option value="16:00:00">4:00 PM</option>
+                                <option value="16:30:00">4:30 PM</option>
                             </optgroup>
                         </select>
                     </div>
@@ -485,16 +495,24 @@
                          <select id="propose-time" required class="form-input">
                              <option value="" disabled selected>Select a time</option>
                              <optgroup label="Morning">
-                                 <option value="08:00:00">8:00 AM</option> <option value="08:30:00">8:30 AM</option>
-                                 <option value="09:00:00">9:00 AM</option> <option value="09:30:00">9:30 AM</option>
-                                 <option value="10:00:00">10:00 AM</option><option value="10:30:00">10:30 AM</option>
-                                 <option value="11:00:00">11:00 AM</option><option value="11:30:00">11:30 AM</option>
+                                 <option value="08:00:00">8:00 AM</option>
+                                 <option value="08:30:00">8:30 AM</option>
+                                 <option value="09:00:00">9:00 AM</option>
+                                 <option value="09:30:00">9:30 AM</option>
+                                 <option value="10:00:00">10:00 AM</option>
+                                 <option value="10:30:00">10:30 AM</option>
+                                 <option value="11:00:00">11:00 AM</option>
+                                 <option value="11:30:00">11:30 AM</option>
                              </optgroup>
                              <optgroup label="Afternoon">
-                                 <option value="13:00:00">1:00 PM</option> <option value="13:30:00">1:30 PM</option>
-                                 <option value="14:00:00">2:00 PM</option> <option value="14:30:00">2:30 PM</option>
-                                 <option value="15:00:00">3:00 PM</option> <option value="15:30:00">3:30 PM</option>
-                                 <option value="16:00:00">4:00 PM</option> <option value="16:30:00">4:30 PM</option>
+                                 <option value="13:00:00">1:00 PM</option>
+                                 <option value="13:30:00">1:30 PM</option>
+                                 <option value="14:00:00">2:00 PM</option>
+                                 <option value="14:30:00">2:30 PM</option>
+                                 <option value="15:00:00">3:00 PM</option>
+                                 <option value="15:30:00">3:30 PM</option>
+                                 <option value="16:00:00">4:00 PM</option>
+                                 <option value="16:30:00">4:30 PM</option>
                              </optgroup>
                          </select>
                      </div>
@@ -573,34 +591,34 @@
                                     <div class="card-header flex justify-between items-center pb-4 mb-5 border-b border-[var(--border-color)]">
                                         <h2 class="text-lg font-semibold text-[var(--text-primary)] m-0">Upcoming Appointments</h2>
                                     </div>
-                                    <ul class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="upcoming-appointments-list">
-                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full">
+                                    <div class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="upcoming-appointments-list" role="list">
+                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
                                             <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
                                             <p class="text-sm mt-2">Loading...</p>
                                         </div>
-                                    </ul>
+                                    </div>
                                 </div>
                                 <div class="card">
                                     <div class="card-header flex justify-between items-center pb-4 mb-5 border-b border-[var(--border-color)]">
                                         <h2 class="text-lg font-semibold text-[var(--text-primary)] m-0">Pending Requests</h2>
                                     </div>
-                                    <ul class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="pending-appointments-list">
-                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full">
+                                    <div class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="pending-appointments-list" role="list">
+                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
                                             <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
                                             <p class="text-sm mt-2">Loading...</p>
                                         </div>
-                                    </ul>
+                                    </div>
                                 </div>
                                 <div class="card">
                                     <div class="card-header flex justify-between items-center pb-4 mb-5 border-b border-[var(--border-color)]">
                                         <h2 class="text-lg font-semibold text-[var(--text-primary)] m-0">Reschedule Requests</h2>
                                     </div>
-                                    <ul class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="reschedule-requests-list">
-                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full">
+                                    <div class="visits-list list-none p-0 m-0 flex flex-col gap-4 max-h-[300px] overflow-y-auto" id="reschedule-requests-list" role="list">
+                                         <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
                                             <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
                                             <p class="text-sm mt-2">Loading...</p>
                                         </div>
-                                    </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -665,10 +683,10 @@
                             </div>
                         </div>
                     </div>
-                    </div>
+                </div>
             </main>
         </div>
-        </div>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
