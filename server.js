@@ -452,25 +452,25 @@ async function loadChatHistory(room) {
 // ⭐ FIX: Modified to filter out 'Completed', 'Rejected', and 'Cancelled' statuses for patients.
 // ⭐⭐ FIX 2: Added LEFT JOIN to fetch doctor details for the message view.
 async function loadAppointmentsForPatient(patientName) {
-    const sql = `
-        SELECT
-            app.*,
-            doctor.fullname AS doctorFullName,
-            doctor.profilePicture AS doctorProfilePic
-        FROM appointments AS app
-        LEFT JOIN users AS doctor ON app.doctorName = doctor.username
-        WHERE app.patientName = ? 
-        ORDER BY app.created_at DESC
-    `.trim();
-    // The filter AND app.status NOT IN ('Completed', 'Rejected', 'Cancelled') has been removed.
-    try {
-        const [rows] = await pool.query(sql, [patientName]);
-        return rows;
-    } catch (error) {
-        console.error(`[Appointments] Error loading appointments for patient ${patientName}:`, error);
-        throw error;
-    }
+    const sql = `
+        SELECT
+            app.*,
+            doctor.fullname AS doctorFullName,
+            doctor.profilePicture AS doctorProfilePic
+        FROM appointments AS app
+        LEFT JOIN users AS doctor ON app.doctorName = doctor.username
+        WHERE app.patientName = ?  
+        ORDER BY app.created_at DESC
+    `.trim();
+    try {
+        const [rows] = await pool.query(sql, [patientName]);
+        return rows;
+    } catch (error) {
+        console.error(`[Appointments] Error loading appointments for patient ${patientName}:`, error);
+        throw error; 
+    }
 }
+
 
 async function loadAppointmentsForDoctor(doctorName) {
     const sql = `SELECT * FROM appointments WHERE doctorName = ? AND status NOT IN ('Completed', 'Rejected', 'Cancelled') ORDER BY created_at DESC`.trim();
