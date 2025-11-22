@@ -459,7 +459,7 @@ async function loadAppointmentsForPatient(patientName) {
             doctor.profilePicture AS doctorProfilePic
         FROM appointments AS app
         LEFT JOIN users AS doctor ON app.doctorName = doctor.username
-        WHERE app.patientName = ? AND app.status NOT IN ('Completed', 'Rejected', 'Cancelled')
+        WHERE app.patientName = ?  // <--- FIXED: Removed the status filter
         ORDER BY app.created_at DESC
     `.trim();
     try {
@@ -467,7 +467,7 @@ async function loadAppointmentsForPatient(patientName) {
         return rows;
     } catch (error) {
         console.error(`[Appointments] Error loading appointments for patient ${patientName}:`, error);
-        throw error; // Re-throw to be handled by caller
+        throw error; 
     }
 }
 
