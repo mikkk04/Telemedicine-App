@@ -1616,9 +1616,9 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`.trim();
             }
             
             const saltRounds = 10;
-            const hashedPassword = await bcrypt.hash(newPass, saltRounds);
+            const hashedNewPassword = await bcrypt.hash(newPass, saltRounds);
             
-            await pool.query('UPDATE users SET password = ? WHERE username = ?'.trim(), [hashedPassword, username]);
+            await pool.query('UPDATE users SET password = ? WHERE username = ?'.trim(), [hashedNewPassword, username]);
             callback({ success: true, message: 'Password changed successfully.' });
         } catch (error) {
             console.error('[User] Error changing password:', error);
@@ -1899,7 +1899,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`.trim();
         }
     });
 
-    socket.on('appointment:save-notes', async (data) => {
+    socket.on('appointment:save-notes', async (data, callback) => { // Added callback param
         const { appointmentId, notes, diagnosis } = data;
         try {
             await pool.query(`UPDATE appointments SET notes = ?, status = 'Completed' WHERE id = ?`.trim(), [notes, appointmentId]);
@@ -1923,9 +1923,12 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`.trim();
         
             await notifyAppointmentUpdate(appointmentId);
             await logActivity(`Consultation notes and diagnosis saved for appointment #${appointmentId}.`);
+            
+            if (callback) callback({ success: true }); // Execute callback
         
         } catch (error) {
             console.error('[Appointment] Error saving notes and diagnosis:', error);
+            if (callback) callback({ success: false, message: 'Server error saving notes.' }); // Execute callback on error
         }
     });
     
