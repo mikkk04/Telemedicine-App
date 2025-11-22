@@ -1060,26 +1060,26 @@ socket.on('appointments:update', (data) => {
         if (activeViewId === 'dashboard-view') renderDashboard();
         else if (activeViewId === 'appointments-view') renderAllAppointments();
         else if (activeViewId === 'calendar-view') renderCalendar();
-        else if (activeViewId === 'messages-view') {
-             // If in messages view, need to potentially update the patient list
-             // and potentially the selectedAppointmentIdForChat if the relevant appointment changed status
-             console.log("[Appointments Update] In messages view, re-fetching patient list.");
-             socket.emit('doctor:get:patients:chatted:with', { doctorUsername: currentUsername });
+        
+        // ⭐ FIX: Force refresh the messaging list EVERY time an appointment updates.
+        // This ensures that as soon as you click "Accept", the patient appears in your chat list.
+        console.log("[Appointments Update] Refreshing chat patient list...");
+        socket.emit('doctor:get:patients:chatted:with', { doctorUsername: currentUsername });
+
+        // If we are currently looking at the messages view, handle specific active chat updates
+        if (activeViewId === 'messages-view') {
              // Re-check relevant appointment for current chat if a patient is selected
              if (selectedPatient) {
-                  const relevantAppointment = allAppointments
-                      .filter(app => (app.patientName === selectedPatient.patientUsername || app.patientFullName === selectedPatient.patientName) && (app.status === 'Accepted' || app.status === 'Completed') && app.doctorName === currentUsername)
-                      .sort((a, b) => new Date(`${b.appointmentDate.split('T')[0]}T${b.appointmentTime}`) - new Date(`${a.appointmentDate.split('T')[0]}T${a.appointmentTime}`))[0];
-                  
-                  const oldAppointmentId = selectedAppointmentIdForChat;
-                  selectedAppointmentIdForChat = relevantAppointment ? relevantAppointment.id : null;
-                  if (oldAppointmentId !== selectedAppointmentIdForChat) {
-                       console.warn(`[Appointments Update] Relevant appointment ID for current chat changed from ${oldAppointmentId} to ${selectedAppointmentIdForChat}`);
-                       if (!selectedAppointmentIdForChat) {
-                            // Optionally alert or disable sending if no relevant appointment exists anymore
-                            // alert("Warning: The relevant appointment for this chat is no longer active or completed. Messaging may not save correctly.");
-                       }
-                  }
+                   const relevantAppointment = allAppointments
+                       .filter(app => (app.patientName === selectedPatient.patientUsername || app.patientFullName === selectedPatient.patientName) && (app.status === 'Accepted' || app.status === 'Completed') && app.doctorName === currentUsername)
+                       .sort((a, b) => new Date(`${b.appointmentDate.split('T')[0]}T${b.appointmentTime}`) - new Date(`${a.appointmentDate.split('T')[0]}T${a.appointmentTime}`))[0];
+                   
+                   const oldAppointmentId = selectedAppointmentIdForChat;
+                   selectedAppointmentIdForChat = relevantAppointment ? relevantAppointment.id : null;
+                   
+                   if (oldAppointmentId !== selectedAppointmentIdForChat) {
+                        console.warn(`[Appointments Update] Relevant appointment ID for current chat changed from ${oldAppointmentId} to ${selectedAppointmentIdForChat}`);
+                   }
              }
         }
         // No specific update needed for profile view on appointment changes
