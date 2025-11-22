@@ -128,7 +128,7 @@
             .main-content-wrapper { margin-left: 280px; padding: 24px; padding-top: 100px; }
         }
 
-        /* ⭐ MOBILE UI FIXES START HERE ⭐ */
+        /* ⭐ MOBILE UI FIXES */
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); position: fixed; height: 100vh; border-radius: 0; margin: 0; }
             .sidebar.is-open { transform: translateX(0); }
@@ -144,16 +144,10 @@
                 border-radius: 0; 
                 margin: 0 !important; 
                 padding: 0.75rem 1rem; 
-                background-color: var(--bg-element); /* Ensure background is solid */
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Add shadow to separate from content */
+                background-color: var(--bg-element);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
 
-            /* FIX: Overlapping & Scroll Issues
-               1. Increased padding-top to 7.5rem (approx 120px) to clear the fixed header.
-               2. Added padding-bottom to ensure last items aren't cut off.
-               3. Used 100dvh for better mobile browser height calculation.
-               4. Added -webkit-overflow-scrolling for smooth iOS scrolling.
-            */
             .main-content-wrapper { 
                 padding-top: 7.5rem; 
                 padding-left: 1rem; 
@@ -164,17 +158,31 @@
                 -webkit-overflow-scrolling: touch;
             }
             
-            /* Ensure modal fits on mobile */
             .modal-container {
                 width: 95% !important;
                 max-width: 95% !important;
                 padding: 1.5rem !important;
             }
+
+            /* ⭐ MESSAGE BOX FIX FOR MOBILE ⭐ */
+            /* This forces the message container to be scrollable on mobile instead of expanding infinitely */
+            .message-list-container {
+                height: 450px; /* Fixed height so scrolling activates */
+                max-height: 60vh; /* Fallback for smaller screens */
+                overflow-y: auto !important; /* Force scrollbar */
+                border: 1px solid rgba(0,0,0,0.05); /* Optional: subtle border to define the area */
+                border-radius: 12px;
+                background-color: rgba(0,0,0,0.02); /* Optional: subtle bg to distinguish area */
+            }
+            /* Ensure the message bubbles don't get cut off */
+            .message-bubble {
+                max-width: 85%; /* Allow wider bubbles on mobile */
+            }
         }
 
         @media (max-width: 480px) {
             .main-content { padding: 0; }
-            .card, .profile-forms-container .card { padding: 1.25rem; margin-bottom: 1rem; } /* Add margin between cards */
+            .card, .profile-forms-container .card { padding: 1.25rem; margin-bottom: 1rem; }
             .header { padding: 0.5rem 1rem; }
             .header-welcome h3 { font-size: 1rem; }
             #main-header-title { font-size: 1.5rem; margin-bottom: 1rem; }
@@ -244,7 +252,6 @@
         }
         
         /* ⭐ SELECT ELEMENT FIX */
-        /* This explicitly forces the options to have high contrast in dark mode */
         html.dark select.form-input option, 
         html.dark select.form-input optgroup {
             background-color: var(--bg-element);
@@ -326,7 +333,7 @@
         .message-input-form-container { background: var(--bg-element); border-top: 1px solid var(--border-color); padding: 1rem; }
         .message-input-form { background: transparent; box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
 
-        /* NEW CSS FOR MESSAGE VIEW SCROLLING FIX */
+        /* SCROLLING FIXES */
         body:not(.messages-active) .main-content {
             overflow-y: auto;
         }
@@ -337,7 +344,7 @@
 
         @media (min-width: 993px) {
             body.messages-active .messages-layout {
-                height: calc(100vh - 100px - 48px - 48px); /* Full height - header height - main content top padding - main content bottom padding */
+                height: calc(100vh - 100px - 48px - 48px); 
             }
         }
         
@@ -346,13 +353,12 @@
             opacity: 0.6;
             cursor: not-allowed;
             box-shadow: none;
-            /* Optional: remove hover effect for disabled */
             box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
         }
         .action-btn.disabled:hover, .action-btn:disabled:hover {
-            box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light); /* Keep inset on hover too if desired */
-            color: var(--text-secondary); /* Ensure hover color doesn't change */
-            background-color: var(--bg-element); /* Ensure background doesn't change */
+            box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+            color: var(--text-secondary);
+            background-color: var(--bg-element);
         }
     </style>
 </head>
