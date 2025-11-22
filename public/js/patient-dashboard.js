@@ -740,32 +740,23 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
 
-            appointments = newAppointments; // Update the local appointment data
-            console.log(`[Patient] Updated global appointments array (count: ${appointments.length}):`, JSON.stringify(appointments));
-
-
-            // ⭐ UPDATE: Always re-render dashboard
-            console.log("[Patient] Triggering renderDashboardAppointments from appointments:update.");
-            renderDashboardAppointments();
-
-            // Re-render other views ONLY if they are currently active
-appointments = newAppointments; // Update the local appointment data
+     appointments = newAppointments; // Update the local appointment data
             console.log(`[Patient] Updated global appointments array (count: ${appointments.length}):`, JSON.stringify(appointments));
 
 
             // ⭐ FIX 1: ALWAYS refresh the doctor contact list (Conversation Partners).
-            // This ensures that when an appointment is ACCEPTED, the Doctor immediately appears in the Messages sidebar.
-            console.log("[Patient] Always refreshing doctor conversation list...");
+            console.log("[Patient] Refreshing doctor conversation list based on new data...");
             fetchPatientConversations(); 
 
-            // ⭐ FIX 2: Re-render Dashboard and check the History tab only if they are the active view.
-            renderDashboardAppointments(); // Re-render dashboard list always
+            // ⭐ FIX 2: Always re-render dashboard list.
+            renderDashboardAppointments(); 
 
+            // Re-render History only if the view is actively open.
             const currentView = document.querySelector('.view-container:not(.hidden)')?.id?.replace('-view', '');
             if (currentView === 'my-health') {
                 console.log("[Patient] Also triggering renderConsultationHistory...");
                 renderConsultationHistory();
-            }
+            } 
             
             // Check if the call details modal is open and needs updating
             const callModal = document.getElementById('patient-call-details-modal');
@@ -780,7 +771,6 @@ appointments = newAppointments; // Update the local appointment data
             console.warn('[Patient][Socket] Received appointments:update without valid appointment data.');
         }
     });
-
      socket.on('patient:profile:data', (data) => {
          if(data) {
              userProfile = data;
