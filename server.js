@@ -504,7 +504,7 @@ async function loadAppointmentsForDoctorDashboard(doctorName, specialty) {
         WHERE (app.doctorName = ? OR (app.specialty = ? AND app.status = 'Pending'))
         ORDER BY app.created_at DESC
     `.trim();
-    // FIX: The redundant filter AND app.status NOT IN ('Completed', 'Rejected', 'Cancelled') has been REMOVED.
+    // NOTE: The line filtering out Completed/Rejected/Cancelled is REMOVED.
     try {
         const [rows] = await pool.query(sql, [doctorName, specialty]);
         return rows;
@@ -516,10 +516,13 @@ async function loadAppointmentsForDoctorDashboard(doctorName, specialty) {
 
 
 async function getDoctorPatients(doctorName) {
-    const sql = `SELECT DISTINCT p.username AS patientUsername, p.fullname AS patientName, p.profilePicture AS patientProfilePicture FROM appointments AS a INNER JOIN users AS p ON a.patientName = p.username WHERE a.doctorName = ? AND a.status IN ('Accepted', 'Completed') ORDER BY a.appointmentDate DESC, a.appointmentTime DESC;`.trim();
+    const sql = `SELECT DISTINCT p.username AS patientUsername, p.fullname AS patientName, p.profilePicture AS patientProfilePicture 
+                 FROM appointments AS a 
+                 INNER JOIN users AS p ON a.patientName = p.username 
+                 WHERE a.doctorName = ? AND a.status IN ('Accepted', 'Completed') 
+                 ORDER BY a.appointmentDate DESC, a.appointmentTime DESC;`.trim();
     try {
         const [rows] = await pool.query(sql, [doctorName]);
-        console.log(`[Messages] Found ${rows.length} patients for doctor '${doctorName}'.`);
         return rows;
     } catch (error) {
         console.error(`[Messages] Error fetching patient list for doctor '${doctorName}':`, error);
