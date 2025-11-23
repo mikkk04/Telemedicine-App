@@ -72,15 +72,15 @@ const pool = mysql.createPool(dbConfig);
 // --- Multer Configuration for File Uploads ---
 // This tells multer where to save the files and what to name them.
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Files will be saved in the 'public/uploads' directory.
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // To avoid name conflicts, we add a timestamp to the original file name.
-    const safeFilename = file.originalname.replace(/\s/g, '_');
-    cb(null, Date.now() + '-' + safeFilename);
-  }
+    destination: (req, file, cb) => {
+        // Files will be saved in the 'public/uploads' directory.
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        // To avoid name conflicts, we add a timestamp to the original file name.
+        const safeFilename = file.originalname.replace(/\s/g, '_');
+        cb(null, Date.now() + '-' + safeFilename);
+    }
 });
 
 const upload = multer({ storage: storage });
@@ -88,25 +88,25 @@ const upload = multer({ storage: storage });
 // --- Route to Handle File Uploads ---
 // This is the endpoint your client-side code is trying to POST to.
 app.post('/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    // If no file was uploaded, send an error status.
-    console.warn('[Upload] Received upload request with no file.');
-    return res.status(400).json({ error: 'No file uploaded.' });
-  }
+    if (!req.file) {
+        // If no file was uploaded, send an error status.
+        console.warn('[Upload] Received upload request with no file.');
+        return res.status(400).json({ error: 'No file uploaded.' });
+    }
 
-  // If the file was uploaded successfully, send back a success response.
-  // The client-side code expects a JSON object with a 'url' property.
-  const fileUrl = `/uploads/${req.file.filename}`;
-  console.log(`[Upload] File '${req.file.originalname}' uploaded successfully. Available at: ${fileUrl}`);
-  res.status(200).json({
-    message: 'File uploaded successfully',
-    url: fileUrl
-  });
+    // If the file was uploaded successfully, send back a success response.
+    // The client-side code expects a JSON object with a 'url' property.
+    const fileUrl = `/uploads/${req.file.filename}`;
+    console.log(`[Upload] File '${req.file.originalname}' uploaded successfully. Available at: ${fileUrl}`);
+    res.status(200).json({
+        message: 'File uploaded successfully',
+        url: fileUrl
+    });
 });
 // ⭐ END: FIX
 
 
-// ⭐ START: ROUTE HANDLER FOR VIDEO CALLS
+// ⭐ START: ROUTE HANDLER FOR VIDEO CALLS (FIXED Cannot GET /... error)
 // This route handles GET requests to /call/:roomId, fixing the "Cannot GET" error.
 app.get('/call/:roomId', async (req, res) => {
     const { roomId } = req.params;
@@ -263,7 +263,7 @@ async function createMedicalHistoryTable() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `;
-     try {
+      try {
         await pool.query(sql);
         console.log('[MySQL] "medical_history" table checked/created successfully.');
     } catch (error) {
@@ -494,10 +494,10 @@ async function loadAllAppointments() {
 async function loadAppointmentsForDoctorDashboard(doctorName, specialty) {
     const sql = `
         SELECT app.*,
-               patient.fullname AS patientFullName,
-               patient.profilePicture AS patientProfilePic,
-               doctor.fullname AS doctorFullName,
-               doctor.profilePicture AS doctorProfilePic
+              patient.fullname AS patientFullName,
+              patient.profilePicture AS patientProfilePic,
+              doctor.fullname AS doctorFullName,
+              doctor.profilePicture AS doctorProfilePic
         FROM appointments AS app
         LEFT JOIN users AS patient ON app.patientName = patient.username
         LEFT JOIN users AS doctor ON app.doctorName = doctor.username
@@ -800,7 +800,7 @@ io.on('connection', (socket) => {
                     fullName: user.fullname,
                     specialty: user.specialty
                 };
-        
+            
                 const userRoom = `user_room_${user.username}`;
                 socket.join(userRoom);
                 console.log(`[Socket Rooms] User '${user.username}' (socket ${socket.id}) joined their private room: ${userRoom}`);
@@ -814,9 +814,9 @@ io.on('connection', (socket) => {
                     // Broadcast the online status change to all clients
                     io.emit('user:status-changed', { username: user.username, isOnline: true });
                 }
-        
+            
                 console.log(`[Online Status] Associated socket ${socket.id} with user '${user.username}'. Total online users: ${onlineUsers.size}`);
-        
+            
                 return callback && callback({ success: true, user: socket.data.user });
             } else {
                 console.warn(`[Online Status] User '${username}' not found in database.`);
@@ -1460,12 +1460,12 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`.trim();
             console.error('[User] Database error during registration:', error);
             
             if (error.code === 'ER_DUP_ENTRY') {
-                 if (error.sqlMessage && error.sqlMessage.includes('email')) {
+                if (error.sqlMessage && error.sqlMessage.includes('email')) {
                     return callback({ success: false, message: 'This email is already registered.' });
-                 }
-                 if (error.sqlMessage && error.sqlMessage.includes('username')) {
+                }
+                if (error.sqlMessage && error.sqlMessage.includes('username')) {
                     return callback({ success: false, message: 'This username is already taken.' });
-                 }
+                }
             }
 
             return callback({ success: false, message: 'An internal server error occurred during registration.' });
@@ -2074,15 +2074,19 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`.trim();
             appointment = rows[0];
             
             const isRoomActive = appointment.roomCreated;
-            if (!isRoomActive) {
-                if (authenticatedUser.role !== 'Doctor' || authenticatedUser.username !== appointment.doctorName) {
-                    console.warn(`[Auth Room] REJECTED: User '${authenticatedUser.username}' is not the assigned doctor for this new room.`);
-                    return socket.emit('auth:failed', 'Only the assigned doctor can start this consultation.');
+            if (authenticatedUser.role === 'Doctor') {
+                if (authenticatedUser.username !== appointment.doctorName) {
+                    console.warn(`[Auth Room] REJECTED: User '${authenticatedUser.username}' is not the assigned doctor for this room.`);
+                    return socket.emit('auth:failed', 'You are not the assigned doctor for this consultation.');
                 }
-            } else {
-                if (authenticatedUser.role !== 'Patient' || authenticatedUser.username !== appointment.patientName) {
-                    console.warn(`[Auth Room] REJECTED: User '${authenticatedUser.username}' is not the assigned patient for this active room.`);
-                    return socket.emit('auth:failed', 'Only the assigned patient can join this consultation.');
+            } else if (authenticatedUser.role === 'Patient') {
+                 if (authenticatedUser.username !== appointment.patientName) {
+                    console.warn(`[Auth Room] REJECTED: User '${authenticatedUser.username}' is not the assigned patient for this room.`);
+                    return socket.emit('auth:failed', 'You are not the assigned patient for this consultation.');
+                }
+                if (!isRoomActive) {
+                    console.warn(`[Auth Room] REJECTED: Patient '${authenticatedUser.username}' attempted to join room '${room}' before the doctor started it.`);
+                    return socket.emit('auth:failed', 'The consultation has not been started by the doctor yet.');
                 }
             }
 
