@@ -155,7 +155,10 @@
                 padding-right: 1rem;
                 padding-bottom: 0 !important; 
                 
+                /* Fallback for older devices (iPhone 4) */
+                height: 100vh; 
                 height: 100dvh; 
+                
                 overflow: hidden; /* Stop the wrapper from scrolling */
                 display: flex;
                 flex-direction: column;
@@ -175,7 +178,7 @@
                 padding: 1.5rem !important;
             }
 
-            /* ⭐ MESSAGE LAYOUT FIXES FOR SCROLLING (NOT EXPANDING) ⭐ */
+            /* ⭐ MESSAGE LAYOUT FIXES FOR IPHONE 4 ⭐ */
             #messages-view {
                 height: 100%;
                 display: flex;
@@ -193,7 +196,7 @@
 
             /* 1. Sidebar (Doctor List): Fixed small height */
             .messages-sidebar {
-                flex: 0 0 135px; /* Fixed height */
+                flex: 0 0 135px; /* Default mobile height */
                 height: 135px !important;
                 overflow-y: auto;
                 margin-bottom: 0;
@@ -215,14 +218,14 @@
 
             /* 3. The Actual Message List (Bubbles) */
             .message-list-container {
-                /* flex: 1 1 0 tells it to grow, shrink, but start calculation at 0 height.
-                   This forces the scrollbar when content exceeds the flex space. */
+                /* flex: 1 1 0 tells it to grow, shrink, but start calculation at 0 height. */
                 flex: 1 1 0; 
                 
                 overflow-y: auto !important;
                 -webkit-overflow-scrolling: touch;
                 height: auto !important;
                 max-height: none !important;
+                padding-bottom: 1.5rem; /* Extra padding so text isn't behind input */
                 
                 border: 1px solid rgba(0,0,0,0.05); 
                 border-radius: 12px;
@@ -233,12 +236,33 @@
                 max-width: 85%; 
             }
 
-            /* 4. Input Area */
+            /* 4. Input Area - Strong Z-Index to prevent overlap issues */
             .message-input-form-container {
                 flex: 0 0 auto; /* Do not grow or shrink */
                 background: var(--bg-element);
-                z-index: 10;
+                z-index: 50; /* Ensure it sits on top */
+                position: relative;
                 padding-bottom: 1rem;
+                box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.1); /* Separator shadow */
+            }
+        }
+
+        /* ⭐ IPHONE 4 / SMALL SCREEN SPECIFIC OVERRIDES (Height < 600px) ⭐ */
+        @media (max-width: 992px) and (max-height: 600px) {
+            /* Shrink top header padding */
+            .main-content-wrapper {
+                padding-top: 65px; /* Reduce top padding */
+            }
+            
+            /* Shrink Doctor List to give more space to chat */
+            .messages-sidebar {
+                flex: 0 0 100px;
+                height: 100px !important;
+            }
+            
+            /* Make header smaller */
+            .header {
+                padding: 0.5rem;
             }
         }
 
