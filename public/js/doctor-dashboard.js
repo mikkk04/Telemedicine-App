@@ -1128,23 +1128,32 @@ window.addEventListener('DOMContentLoaded', () => {
 socket.on('connect', () => {
     console.log('[Socket] Connected to server via Socket.IO');
     const user = getLoggedInUser();
-    if (user.username) {
-        // Identify user to the server upon connection
+    
+    // VALIDATION: Ensure we actually have a valid username string, not "null" or "undefined"
+    if (user.username && user.username !== 'null' && user.username !== 'undefined') {
+        
         socket.emit('user:online', { username: user.username, role: user.role }, (response) => {
-             console.log('[Socket] user:online acknowledged by server:', response);
+            console.log('[Socket] user:online response:', response);
+            
             if (response && response.success) {
-                 console.log('[Socket] User identified. Proceeding with initial data fetch.');
-                // Fetch initial data needed for the dashboard
-                socket.emit('get:all:appointments'); 
-                socket.emit('user:get-profile', { username: currentUsername }); // Fetch full profile
+                console.log('[Socket] Session active. Proceeding...');
             } else {
-                console.error('[Socket] Failed to identify user with server after connection.', response?.message);
-                alert('Error connecting to user session. Please refresh.');
+                // Extract the specific error message from the server
+                const errorMsg = response?.message || "Server rejected connection.";
+                console.error('[Socket] Connection Failed (Soft Fail):', errorMsg);
+                // We Log it but DO NOT BLOCK data loading below.
             }
+            
+            // --- SOFT FAIL FIX: LOAD DATA ANYWAY ---
+            // This ensures the dashboard loads even if the "user:online" presence check fails
+            console.log('[Socket] Requesting application data...');
+            socket.emit('get:all:appointments'); 
+            socket.emit('user:get-profile', { username: currentUsername || user.username });
         });
     } else {
-        console.error("[Socket Connect] No username found in local storage. Cannot identify user.");
-        // Consider redirecting to login here
+        console.warn("[Socket] Invalid session data found. Redirecting to login.");
+        localStorage.clear();
+        window.location.href = '/'; 
     }
 });
 
