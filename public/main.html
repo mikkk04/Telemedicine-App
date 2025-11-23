@@ -390,6 +390,7 @@
             }
 
             /* Chat Mobile: Full Screen Overlay */
+            /* UPDATED: Fixed position relative to viewport, higher Z-index */
             #chat-container {
                 display: none; /* Controlled by JS */
                 position: absolute;
@@ -399,10 +400,11 @@
                 height: 100%;
                 background: #f5f5f5;
                 flex-direction: column;
-                z-index: 200;
+                z-index: 300; /* Must be higher than controls (100) and header (50) */
             }
 
             /* Force display flex when active on mobile */
+            /* This ensures inner layout works even if JS sets display: block */
             #chat-container[style*="display: block"], 
             #chat-container[style*="display: flex"] {
                 display: flex !important;
@@ -482,35 +484,35 @@
                     <button id="endCallBtn" title="End Call" class="end-call-button"><i class="fas fa-phone-slash"></i></button>
                 </div>
             </div>
+        </div>
 
-            <div id="chat-container" class="chat-container">
-                <div id="chat-header" class="chat-header">
-                    <span>
-                        <span id="chatPeerNameDisplay">Waiting for user</span>
-                        <span id="peerStatusDot" class="peer-status-dot status-offline"></span>
-                        <span id="typingIndicator" class="typing-indicator" style="display: none;"></span>
-                    </span>
-                    <div style="display:flex; gap: 5px;">
-                        <button id="saveChatHistoryBtn" class="icon-button" title="Save Chat History" style="border:none; background:none; cursor:pointer;">
-                            <i class="fas fa-save"></i>
-                        </button>
-                        <button id="exitChatBtn" class="exit-btn" title="Close Chat" style="border:none; background:none; cursor:pointer; font-size:1.2rem;">&#x2716;</button>
-                    </div>
+        <div id="chat-container" class="chat-container">
+            <div id="chat-header" class="chat-header">
+                <span>
+                    <span id="chatPeerNameDisplay">Waiting for user</span>
+                    <span id="peerStatusDot" class="peer-status-dot status-offline"></span>
+                    <span id="typingIndicator" class="typing-indicator" style="display: none;"></span>
+                </span>
+                <div style="display:flex; gap: 5px;">
+                    <button id="saveChatHistoryBtn" class="icon-button" title="Save Chat History" style="border:none; background:none; cursor:pointer;">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <button id="exitChatBtn" class="exit-btn" title="Close Chat" style="border:none; background:none; cursor:pointer; font-size:1.2rem;">&#x2716;</button>
                 </div>
+            </div>
 
-                <div id="chat-box" class="chat-box">
-                </div>
+            <div id="chat-box" class="chat-box">
+            </div>
 
-                <div id="chat-controls" class="chat-controls">
-                    <div id="fileIcon" class="file-icon" title="Attach File" style="cursor: pointer;">
-                        <i class="fas fa-paperclip"></i>
-                    </div>
-                    <input type="file" id="fileInput" class="file-input" style="display: none;" />
-                    
-                    <button id="takePictureBtn" title="Take a Picture"><i class="fas fa-camera"></i></button>
-                    <input id="chatInput" type="text" class="chat-input" placeholder="Type a message..." disabled>
-                    <button id="sendChatBtn" title="Send Message" disabled><i class="fas fa-paper-plane"></i></button>
+            <div id="chat-controls" class="chat-controls">
+                <div id="fileIcon" class="file-icon" title="Attach File" style="cursor: pointer;">
+                    <i class="fas fa-paperclip"></i>
                 </div>
+                <input type="file" id="fileInput" class="file-input" style="display: none;" />
+                
+                <button id="takePictureBtn" title="Take a Picture"><i class="fas fa-camera"></i></button>
+                <input id="chatInput" type="text" class="chat-input" placeholder="Type a message..." disabled>
+                <button id="sendChatBtn" title="Send Message" disabled><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
