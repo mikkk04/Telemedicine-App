@@ -391,9 +391,7 @@
                 background: #ff4444;
             }
 
-            /* * Chat Mobile: Full Screen Overlay - FIXED & FORCED 
-             * This ensures the chat fills the entire screen on mobile
-             */
+            /* ⭐ CHAT MOBILE FIX: FULL SCREEN OVERLAY (Positioning) */
             #chat-container {
                 display: none; /* Controlled by JS */
                 position: fixed !important; 
@@ -402,18 +400,18 @@
                 right: 0 !important;
                 bottom: 0 !important;
                 width: 100% !important;
-                height: 100vh !important; /* Use vh for reliable full screen height */
+                height: 100vh !important; 
                 background: #f5f5f5 !important;
                 flex-direction: column;
-                z-index: 9999 !important; /* Top priority */
-                transform: none !important; /* Disable slide-in transforms on mobile */
+                z-index: 9999 !important;
+                transform: none !important; 
                 margin: 0 !important;
             }
 
-            /* Force display flex when active on mobile */
+            /* Force display flex when active on mobile (based on JS class toggle) */
             #chat-container[style*="display: block"], 
             #chat-container[style*="display: flex"],
-            #chat-container.active {
+            #chat-container.chat-open {
                 display: flex !important;
             }
 
