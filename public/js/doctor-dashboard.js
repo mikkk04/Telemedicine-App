@@ -183,6 +183,7 @@ function showRescheduleModal(appointment) {
  * Renders the Call Details Modal.
  * @param {object} appointment The appointment object.
  */
+// --- ⭐ FIX: BUTTON STATE LOGIC ---
 function showCallDetailsModal(appointment, serverRedirectUrl = null) {
     const callPatientNameEl = document.getElementById('callPatientName');
     const createJoinBtn = document.getElementById('createJoinCallBtn');
@@ -193,26 +194,20 @@ function showCallDetailsModal(appointment, serverRedirectUrl = null) {
     createJoinBtn.dataset.appointmentId = appointment.id;
     document.getElementById('finishAppointmentBtn').dataset.appointmentId = appointment.id;
 
+    // --- A. URL Construction (For Link & QR) ---
     let fullUrl = '#';
-
-    // 1. Construct the absolute URL
-    // We must ensure we are creating a valid URL structure: domain + /call/ID + query params
     if (serverRedirectUrl) {
-        // If server sent a redirect URL (e.g. /call/123?token=...), make it absolute
+        // If we just created it, use the server's URL
         fullUrl = serverRedirectUrl.startsWith('http') ? serverRedirectUrl : `${window.location.origin}${serverRedirectUrl}`;
     } else if (appointment.authToken) {
-        // If we only have the token string, construct the URL manually
+        // If loading from existing data
         fullUrl = `${window.location.origin}/call/${appointment.id}?token=${appointment.authToken}`;
     }
 
-    console.log('[Call Modal] Constructed URL:', fullUrl);
-
-    // 2. Apply URL to Link & QR
+    // --- B. Display QR & Link (Always show if URL exists) ---
     if (fullUrl !== '#') {
         callLinkEl.href = fullUrl;
         callLinkEl.textContent = fullUrl;
-        
-        // 3. Apply URL to QR Code
         setTimeout(() => {
             if (typeof QRCode !== 'undefined') {
                 qrCodeEl.src = ''; 
@@ -227,21 +222,25 @@ function showCallDetailsModal(appointment, serverRedirectUrl = null) {
         qrCodeEl.src = '';
     }
 
-    // 4. Apply URL to Button (Join Mode)
-    // If room exists OR we just got a redirect URL, show JOIN and set onclick
-    if (appointment.roomCreated || serverRedirectUrl) {
+    // --- C. Button State Logic ---
+    // Condition: Is the room active? 
+    // Yes if: Database says roomCreated=1 OR we just got a redirect URL from creating it.
+    const isRoomActive = appointment.roomCreated || serverRedirectUrl;
+
+    if (isRoomActive) {
+        // State: JOIN
         createJoinBtn.textContent = 'Join Call';
         createJoinBtn.disabled = false;
         createJoinBtn.onclick = (e) => {
             e.preventDefault(); 
             e.stopPropagation();
-            console.log('[Join Call] Opening URL:', fullUrl);
-            window.open(fullUrl, '_blank'); 
+            window.open(fullUrl, '_blank'); // Open the call
         };
     } else {
+        // State: CREATE
         createJoinBtn.textContent = 'Create Call';
         createJoinBtn.disabled = false;
-        createJoinBtn.onclick = null; // Handled by global event listener
+        createJoinBtn.onclick = null; // Handled by the global click listener (see below)
     }
 
     showModal('callDetailsModal');
@@ -1283,35 +1282,30 @@ document.addEventListener('click', (e) => {
         }
     }
     // --- Create / Join Call Button (Inside Call Details Modal) ---
-    else if (target.id === 'createJoinCallBtn') {
-        const currentAppointmentId = target.dataset.appointmentId;
-        console.log(`[Create/Join Call] Clicked for appointment ID: ${currentAppointmentId}`);
+   else if (e.target.id === 'createJoinCallBtn') {
+        const btn = e.target;
+        const appId = btn.dataset.appointmentId;
         
-        // Only trigger "Create" logic if the button text actually says "Create"
-        // (If it says "Join", the click is handled by the listener inside showCallDetailsModal)
-        if (target.textContent.includes('Create')) {
-            target.disabled = true;
-            target.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
-
-            socket.emit('doctor:create-room', { appointmentId: currentAppointmentId, doctorName: currentUsername }, (response) => {
-                console.log('[Create Call] Response:', response);
-
-                if (response && response.success) {
-                    // Find the appointment in local state
-                    const appointment = allAppointments.find(app => app.id == currentAppointmentId);
+        // Only run "Create" logic if the button text is "Create Call"
+        // (If it is "Join Call", the specific onclick handler in the modal handles it)
+        if(btn.textContent.includes('Create')) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+            
+            socket.emit('doctor:create-room', { appointmentId: appId, doctorName: currentUsername }, (res) => {
+                if(res.success) {
+                    // 1. Find the appointment in our local list
+                    const app = allAppointments.find(a => a.id == appId);
                     
-                    if (appointment) {
-                        // 1. Optimistically update room status
-                        appointment.roomCreated = 1; 
-                        
-                        // 2. Re-open the modal with the NEW redirect URL from server
-                        // ⭐ IMPORTANT: We pass the URL here, we do NOT overwrite appointment.authToken
-                        showCallDetailsModal(appointment, response.redirectUrl);
-                    }
+                    // 2. Update local state so it persists if we close/re-open modal
+                    if(app) app.roomCreated = 1; 
+                    
+                    // 3. Re-render the modal to switch button to "Join Call"
+                    showCallDetailsModal(app, res.redirectUrl); 
                 } else {
-                    alert(response.message || 'Failed to create call.');
-                    target.disabled = false;
-                    target.textContent = 'Create Call';
+                    alert(res.message || 'Error creating room');
+                    btn.disabled = false;
+                    btn.textContent = 'Create Call';
                 }
             });
         }
