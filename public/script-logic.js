@@ -52,7 +52,7 @@ function movePuppy() {
 
 /**
  * Applies horizontal mirroring to a video element based on camera facing mode.
-* @param {HTMLVideoElement} videoElement The video element to transform.
+ * @param {HTMLVideoElement} videoElement The video element to transform.
  * @param {string} facingMode The facing mode ('user', 'environment', or 'unknown').
  */
 function applyVideoTransform(videoElement, facingMode) {
@@ -86,21 +86,21 @@ async function getLocalStream(targetFacingMode = currentFacingMode) {
         let selectedDevice = null;
         if (availableVideoDevices.length > 0 && availableVideoDevices[0].label !== '') {
              if (targetFacingMode === 'user') {
-                selectedDevice = availableVideoDevices.find(d => d.label.toLowerCase().includes('front') || d.facingMode === 'user');
-            } else if (targetFacingMode === 'environment') {
-                selectedDevice = availableVideoDevices.find(d => d.label.toLowerCase().includes('back') || d.facingMode === 'environment');
-            }
+                 selectedDevice = availableVideoDevices.find(d => d.label.toLowerCase().includes('front') || d.facingMode === 'user');
+             } else if (targetFacingMode === 'environment') {
+                 selectedDevice = availableVideoDevices.find(d => d.label.toLowerCase().includes('back') || d.facingMode === 'environment');
+             }
              if (!selectedDevice && targetFacingMode !== 'user') {
-                selectedDevice = availableVideoDevices.find(d => d.label.toLowerCase().includes('front') || d.facingMode === 'user');
-            }
-            if (!selectedDevice) {
-                selectedDevice = availableVideoDevices.find(d => d.label.toLowerCase().includes('back') || d.facingMode === 'environment');
-            }
+                 selectedDevice = availableVideoDevices.find(d => d.label.toLowerCase().includes('front') || d.facingMode === 'user');
+             }
+             if (!selectedDevice) {
+                 selectedDevice = availableVideoDevices.find(d => d.label.toLowerCase().includes('back') || d.facingMode === 'environment');
+             }
             
-            if (selectedDevice) {
-                constraints.video = { deviceId: { exact: selectedDevice.deviceId } };
-                currentCameraIndex = availableVideoDevices.findIndex(d => d.deviceId === selectedDevice.deviceId);
-            }
+             if (selectedDevice) {
+                 constraints.video = { deviceId: { exact: selectedDevice.deviceId } };
+                 currentCameraIndex = availableVideoDevices.findIndex(d => d.deviceId === selectedDevice.deviceId);
+             }
         }
         
         // Fallback constraint if device selection failed or devices not enumerated yet
@@ -223,7 +223,7 @@ function displayLocalStreamInMini() {
 
     if (miniVideo.srcObject !== localStream) { 
         miniVideo.srcObject = localStream;
-        applyVideoTransform(miniVideo, currentFacingMode);    
+        applyVideoTransform(miniVideo, currentFacingMode);      
         miniVideo.muted = true; 
         miniVideoNameLabel.textContent = currentUsername || 'You';
         miniVideo.play().catch(e => console.warn('Mini video play error:', e));
@@ -451,16 +451,16 @@ function setupSocketEventListeners() {
         window.location.href = '/';
     });
     
-    socket.on('auth:failed', (message) => {
-        alert(`Authentication Failed: ${message}`);
-        window.location.href = '/';
-    });
-
     socket.on('connect_error', (error) => {
         alert('Failed to connect to the signaling server. Please try again.');
         window.location.href = '/';
     });
     
+    socket.on('auth:failed', (message) => {
+        alert(`Authentication Failed: ${message}`);
+        window.location.href = '/';
+    });
+
     socket.on('room:created', (data) => {
         if (data.user) {
             currentUsername = data.user.username;
@@ -648,7 +648,7 @@ function setupSocketEventListeners() {
 
 /**
  * Stops all tracks in a given media stream.
-* @param {MediaStream} stream The stream whose tracks should be stopped.
+ * @param {MediaStream} stream The stream whose tracks should be stopped.
  */
 function stopMediaStream(stream) {
     if (stream) {
@@ -712,7 +712,7 @@ async function switchCamera() {
         cameraPovVideo.play().catch(e => console.warn(e));
         miniVideo.play().catch(e => console.warn(e));
         if (peerConnections.size === 0) {
-              mainVideo.play().catch(e => console.warn(e));
+             mainVideo.play().catch(e => console.warn(e));
         }
 
         // Apply correct mirroring transform
@@ -983,7 +983,7 @@ function resetCallUI() {
     if (chatBox) chatBox.innerHTML = ''; 
 
     stopCallTimer(); 
-    updatePeerStatus(false);    
+    updatePeerStatus(false);      
     hideMiniVideo(); 
 
     // Reset camera state variables
@@ -1024,9 +1024,17 @@ mainVideoContainer.addEventListener('touchend', (e) => {
     }
 });
 
+// 📌 FIX: Changed from 'chat-open' to 'active' to match mobile CSS toggle logic.
+toggleChatBtn.addEventListener('click', () => chatContainer.classList.toggle('active'));
+exitChatBtn.addEventListener('click', () => chatContainer.classList.remove('active'));
 
-toggleChatBtn.addEventListener('click', () => chatContainer.classList.toggle('chat-open'));
-exitChatBtn.addEventListener('click', () => chatContainer.classList.remove('chat-open'));
+// Optional: Add ESC key listener to close chat
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && chatContainer.classList.contains('active')) {
+        chatContainer.classList.remove('active');
+        chatInput.focus();
+    }
+});
 
 function emitTypingStatus(isTyping) {
     const payload = { type: 'typing', isTyping, sender: currentUsername, senderId: socket.id };
