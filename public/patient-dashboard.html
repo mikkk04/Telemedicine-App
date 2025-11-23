@@ -148,73 +148,97 @@
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
 
+            /* ⭐ REDESIGNED MOBILE CONTAINER LOGIC (Flexbox instead of calc) */
             .main-content-wrapper { 
                 padding-top: 7.5rem; 
                 padding-left: 1rem; 
-                padding-right: 1rem; 
-                padding-bottom: 4rem; 
-                overflow-y: auto; 
+                padding-right: 1rem;
+                /* REMOVE bottom padding to reclaim space */ 
+                padding-bottom: 0 !important; 
+                
+                /* Force full height and fix scrolling issue */
                 height: 100dvh; 
-                -webkit-overflow-scrolling: touch;
+                overflow: hidden; /* Stop the wrapper from scrolling */
+                display: flex;
+                flex-direction: column;
             }
             
+            .main-content {
+                flex: 1; /* Fill remaining space */
+                display: flex;
+                flex-direction: column;
+                overflow: hidden; /* Prevent internal scroll */
+                padding-bottom: 0 !important;
+            }
+
             .modal-container {
                 width: 95% !important;
                 max-width: 95% !important;
                 padding: 1.5rem !important;
             }
 
-            /* ⭐ MESSAGES LAYOUT FIX FOR MOBILE ⭐ */
-            
-            /* 1. Constraint the Doctor List height so it doesn't push chat off screen */
-            .messages-sidebar {
-                height: 140px !important;
-                min-height: 140px !important;
-                flex-grow: 0 !important;
-                overflow-y: auto;
-                margin-bottom: 0.5rem;
-            }
-
-            /* 2. Container for the actual chat area */
-            .messages-content {
-                /* Calculate remaining height: 100dvh - (Header+PaddingTop ~120px) - (DocList ~140px) - (PaddingBottom ~64px) */
-                height: calc(100dvh - 340px) !important; 
-                min-height: 300px; /* Minimum safety height */
+            /* ⭐ FLEXBOX MESSAGE LAYOUT FOR MOBILE ⭐ */
+            #messages-view {
+                height: 100%;
                 display: flex;
                 flex-direction: column;
+            }
+
+            .messages-layout {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                gap: 0.5rem;
+            }
+
+            /* 1. Sidebar (Doctor List): Fixed small height */
+            .messages-sidebar {
+                flex: 0 0 135px; /* Fixed height: Don't grow, don't shrink */
+                height: 135px !important;
+                overflow-y: auto;
+                margin-bottom: 0;
+            }
+
+            /* 2. Chat Content: Fill ALL remaining space */
+            .messages-content {
+                flex: 1; /* Grow to fill whatever space is left */
+                display: flex;
+                flex-direction: column;
+                min-height: 0; /* Critical for nested flex scrolling */
+                height: auto !important; /* Override fixed heights */
                 background: transparent !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
             }
 
-            /* 3. The scrollable message bubbles area */
+            /* 3. Message List: Scrollable area */
             .message-list-container {
-                flex-grow: 1; /* Take up all available space in parent */
-                height: auto !important; /* Override fixed height */
+                flex: 1; /* Grow to push input down */
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                height: auto !important;
                 max-height: none !important;
-                overflow-y: auto !important; /* Force scrollbar */
-                -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
                 
                 border: 1px solid rgba(0,0,0,0.05); 
                 border-radius: 12px;
                 background-color: rgba(0,0,0,0.02); 
             }
             
-            /* Ensure the message bubbles don't get cut off */
             .message-bubble {
-                max-width: 85%; /* Allow wider bubbles on mobile */
+                max-width: 85%; 
             }
 
-            /* 4. Ensure input stays at bottom */
+            /* 4. Input: Fixed at bottom, safe from overlap */
             .message-input-form-container {
-                flex-shrink: 0;
+                flex: 0 0 auto; /* Fixed height */
                 background: var(--bg-element);
                 z-index: 10;
+                padding-bottom: 1rem; /* Add safe padding at bottom */
             }
         }
 
         @media (max-width: 480px) {
-            .main-content { padding: 0; }
+            /* .main-content { padding: 0; }  <-- Removed to prevent conflict with flex layout */
             .card, .profile-forms-container .card { padding: 1.25rem; margin-bottom: 1rem; }
             .header { padding: 0.5rem 1rem; }
             .header-welcome h3 { font-size: 1rem; }
