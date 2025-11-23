@@ -32,6 +32,7 @@ let diagnosisSpecificChangeListener = null;
 
 // Notification sound
 const notificationSound = new Audio('/sounds/notification.mp3'); // Ensure path is correct
+
 // --- TIME FORMAT HELPER (12-Hour) ---
 function formatTime12Hour(timeString) {
     if (!timeString) return '';
@@ -43,6 +44,7 @@ function formatTime12Hour(timeString) {
     h = h ? h : 12; // the hour '0' should be '12'
     return `${h}:${minutes} ${ampm}`;
 }
+
 function playNotificationSound() {
     notificationSound.play().catch(e => console.error("Error playing notification sound:", e));
 }
@@ -83,6 +85,7 @@ function updateDiagnosisTextarea() {
     doctorNotesTextarea.setSelectionRange(endPosition, endPosition);
     doctorNotesTextarea.scrollTop = doctorNotesTextarea.scrollHeight; // Scroll to bottom if needed
 }
+
 function setupDiagnosisSelectors(isNewDiagnosis = false) {
     const typeSelect = document.getElementById('diagnosis-type-select');
     const specificSelect = document.getElementById('diagnosis-specific-select');
@@ -124,6 +127,7 @@ function setupDiagnosisSelectors(isNewDiagnosis = false) {
         specificSelect.addEventListener('change', diagnosisSpecificChangeListener);
     }
 }
+
 function populateSelectorsFromNotes(notes) {
     if (!notes) return;
     const typeSelect = document.getElementById('diagnosis-type-select');
@@ -173,6 +177,7 @@ function populateSelectorsFromNotes(notes) {
 function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); } }
 function hideModal(modalId) { const modal = document.getElementById(modalId); if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); const form = modal.querySelector('form'); if (form) form.reset(); const passwordError = modal.querySelector('#password-error'); if (passwordError) { passwordError.classList.add('hidden'); passwordError.textContent = ''; } } }
 function setupModalCloseButtons() { document.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => { const modal = btn.closest('.modal-overlay'); if (modal) hideModal(modal.id); })); }
+
 function showRescheduleModal(appointment) {
     const modal = document.getElementById('reschedule-modal'); if (!modal) return;
     document.getElementById('resched-patient-name').textContent = appointment.patientFullName || appointment.patientName || 'N/A';
@@ -189,16 +194,15 @@ function showRescheduleModal(appointment) {
     document.getElementById('resched-reason').value = ''; // Clear previous reason
     showModal('reschedule-modal');
 }
+
 /**
  * Renders the Call Details Modal.
  * @param {object} appointment The appointment object.
  */
-// --- ⭐ FIX: BUTTON STATE LOGIC ---
-// --- ⭐ FIX: Populates Subject & Date/Time correctly ---
 function showCallDetailsModal(appointment, serverRedirectUrl = null) {
     const callPatientNameEl = document.getElementById('callPatientName');
-    const callSubjectEl = document.getElementById('callSubject'); // Added back
-    const callDateTimeEl = document.getElementById('callDateTime'); // Added back
+    const callSubjectEl = document.getElementById('callSubject'); 
+    const callDateTimeEl = document.getElementById('callDateTime'); 
     const createJoinBtn = document.getElementById('createJoinCallBtn');
     const callLinkEl = document.getElementById('callLinkText');
     const qrCodeEl = document.getElementById('qrCodeImage');
@@ -207,16 +211,16 @@ function showCallDetailsModal(appointment, serverRedirectUrl = null) {
     callPatientNameEl.textContent = appointment.patientFullName || appointment.patientName;
     callSubjectEl.textContent = appointment.subject || 'N/A';
     
-    // Format Date & Time safely
+    // Format Date & Time safely (using 12-hour helper)
     const dateStr = appointment.appointmentDate.split('T')[0];
     const dateObj = new Date(dateStr + 'T00:00:00');
-    callDateTimeEl.textContent = `${dateObj.toLocaleDateString()} at ${appointment.appointmentTime}`;
+    callDateTimeEl.textContent = `${dateObj.toLocaleDateString()} at ${formatTime12Hour(appointment.appointmentTime)}`;
 
     // Set Button IDs
     createJoinBtn.dataset.appointmentId = appointment.id;
     document.getElementById('finishAppointmentBtn').dataset.appointmentId = appointment.id;
 
-    // --- URL Logic (Kept from previous fix) ---
+    // --- URL Logic ---
     let fullUrl = '#';
 
     // Construct absolute URL
@@ -265,6 +269,7 @@ function showCallDetailsModal(appointment, serverRedirectUrl = null) {
 
 // --- CALENDAR FUNCTIONS ---
 function getCalendarEventColor(status) { switch (status) { case 'Pending': return 'var(--ui-warning)'; case 'Accepted': return 'var(--primary-color)'; case 'Rescheduled-Pending': return 'var(--ui-warning)'; case 'Completed': return 'var(--ui-success)'; case 'Rejected': return 'var(--ui-danger)'; default: return 'var(--primary-color)'; } }
+
 function renderCalendar() {
     const calendarMonthYear = document.getElementById('calendar-month-year'); const calendarGrid = document.getElementById('calendar-grid'); if (!calendarMonthYear || !calendarGrid) return;
     const month = calendarDate.getMonth(); const year = calendarDate.getFullYear(); const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; calendarMonthYear.textContent = `${monthNames[month]} ${year}`;
@@ -278,9 +283,6 @@ function renderCalendar() {
     }
 }
 
-// -------------------
-// --- FIX APPLIED ---
-// -------------------
 function setupCalendarEventListeners() {
     const calendarContainer = document.getElementById('calendar-view'); if (!calendarContainer) return;
     const listEl = document.getElementById('modal-appointments-list'); // Get the list element once
@@ -321,9 +323,10 @@ function setupCalendarEventListeners() {
                     } catch (stringifyErr) {
                         console.error("Error stringifying appointment data for button:", stringifyErr, app);
                     }
+                    // Apply formatTime12Hour here
                     li.innerHTML = `
                         <div>
-                            <p class="font-bold">${app.appointmentTime} - ${app.patientFullName || app.patientName}</p>
+                            <p class="font-bold">${formatTime12Hour(app.appointmentTime)} - ${app.patientFullName || app.patientName}</p>
                             <span class="text-sm text-[var(--text-secondary)]">Subject: ${app.subject}</span>
                         </div>
                         <button class="action-btn primary reschedule-btn" data-appointment=${appDataString}>Reschedule</button>`; 
@@ -386,9 +389,6 @@ function setupCalendarEventListeners() {
         });
     }
 }
-// -------------------
-// --- END OF FIX ---
-// -------------------
 // --- END CALENDAR FUNCTIONS ---
 
 
@@ -442,6 +442,7 @@ function renderDashboard() {
     renderTodaysAppointments(today);
     renderAppointmentRequests(); // Uses pendingRequests filtered above
 }
+
 function createAppointmentItemHTML(req) {
      const profilePicSrc = req.patientProfilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.patientFullName || req.patientName || 'P')}&background=E1E1E1&color=555&bold=true`;
     return `
@@ -450,7 +451,7 @@ function createAppointmentItemHTML(req) {
             <div class="details flex-grow min-w-0"> 
                 <h4 class="font-semibold truncate">${req.patientFullName || req.patientName} (${req.specialty})</h4> 
                 <p class="text-sm text-gray-500 truncate">Subject: ${req.subject}</p> 
-                <p class="text-xs text-gray-400 truncate">Requested: ${new Date(req.appointmentDate).toLocaleDateString()} at ${req.appointmentTime}</p> 
+                <p class="text-xs text-gray-400 truncate">Requested: ${new Date(req.appointmentDate).toLocaleDateString()} at ${formatTime12Hour(req.appointmentTime)}</p> 
             </div>
             <div class="actions flex gap-2 flex-shrink-0"> 
                 <button class="action-btn accept-btn !p-0 w-9 h-9 flex items-center justify-center !rounded-full" data-id="${req.id}" title="Accept"><i class="fas fa-check"></i></button> 
@@ -459,6 +460,7 @@ function createAppointmentItemHTML(req) {
             </div>
         </li>`;
 }
+
 function renderAppointmentRequests() {
     const requestsListContainer = document.getElementById('requests-list-container'); 
     if (!requestsListContainer) { 
@@ -485,6 +487,7 @@ function renderAppointmentRequests() {
         requestsListContainer.innerHTML += createAppointmentItemHTML(req); 
     });
 }
+
 function renderTodaysAppointments(date) {
     const todayAppointmentsList = document.getElementById('today-appointments-list'); 
     if (!todayAppointmentsList) {
@@ -515,7 +518,7 @@ function renderTodaysAppointments(date) {
             <li class="card !p-3 flex items-center gap-4"> 
                 <div class="details flex-grow"> 
                     <h4 class="font-semibold">${app.patientFullName || app.patientName} - ${app.subject}</h4> 
-                    <p class="text-sm text-[var(--text-secondary)]">${app.appointmentTime}</p> 
+                    <p class="text-sm text-[var(--text-secondary)]">${formatTime12Hour(app.appointmentTime)}</p> 
                     <p class="text-sm">Status: <span class="font-semibold" style="color: ${getCalendarEventColor(app.status)}">${app.status}</span></p> 
                 </div> 
                 <div class="actions">${actionsHtml}</div> 
@@ -572,7 +575,7 @@ function renderAllAppointments() {
                 <li class="card !p-3 flex items-center gap-4"> 
                     <div class="details flex-grow"> 
                         <h4 class="font-semibold">${app.patientFullName || app.patientName} - ${app.subject}</h4> 
-                        <p class="text-sm text-[var(--text-secondary)]">${new Date(app.appointmentDate.split('T')[0] + 'T00:00:00').toLocaleDateString()} at ${app.appointmentTime}</p> 
+                        <p class="text-sm text-[var(--text-secondary)]">${new Date(app.appointmentDate.split('T')[0] + 'T00:00:00').toLocaleDateString()} at ${formatTime12Hour(app.appointmentTime)}</p> 
                         <p class="text-sm">Status: <span class="font-semibold" style="color: ${getCalendarEventColor(app.status)}">${app.status}</span></p> 
                     </div> 
                     ${actionsHtml} 
@@ -622,6 +625,7 @@ function renderProfile() {
     document.getElementById('edit-profile-email').value = doctorProfile.email || '';
     document.getElementById('edit-profile-phone').value = doctorProfile.phone || '';
 }
+
 function updateProfilePicDisplay(profile) {
     const createPicElement = (src, displayName) => { 
         const picUrl = src || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName ? displayName.charAt(0) : 'D')}&background=4C7AFB&color=fff&bold=true&size=128`; 
@@ -654,6 +658,7 @@ function updateProfilePicDisplay(profile) {
         headerPicContainer.appendChild(img); 
     }
 }
+
 function updateWelcomeMessage(profile) { 
     const welcomeNameSpan = document.querySelector('.welcome-name'); 
     // Prioritize staticFullName for display consistency
@@ -678,18 +683,19 @@ function renderMessagesView() {
     selectedPatient = null;
     selectedAppointmentIdForChat = null; // Reset appointment ID when view loads
 }
+
 function renderPatientList(patients) {
     const patientListEl = document.getElementById('patients-list-for-messaging');
     if (!patientListEl) return;
     
-    // ⭐ FIX START: De-duplicate patients using Map
+    // FIX: De-duplicate patients using Map
     const uniquePatientsMap = new Map();
     patients.forEach(patient => {
         // Uses the patientUsername as the definitive unique key
         uniquePatientsMap.set(patient.patientUsername, patient); 
     });
     const uniquePatients = Array.from(uniquePatientsMap.values());
-    // ⭐ FIX END: uniquePatients list is now clean
+    // FIX END: uniquePatients list is now clean
 
     patientListEl.innerHTML = ''; // Clear previous list
 
@@ -736,6 +742,7 @@ function renderPatientList(patients) {
         patientListEl.appendChild(li);
     });
 }
+
 function appendMessageToChat(msg) {
     const chatMessagesContainer = document.getElementById('chat-messages-container'); if (!chatMessagesContainer) return;
     const placeholder = chatMessagesContainer.querySelector('.placeholder-text'); if (placeholder) placeholder.remove(); // Remove "No history" message
@@ -758,8 +765,8 @@ function appendMessageToChat(msg) {
         contentHtml = msg.message; // Just the text message
     }
 
-    // Format timestamp
-    const timestamp = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Format timestamp with forced 12-hour format
+    const timestamp = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
     const messageHtml = `
         <div class="message-bubble w-fit max-w-[80%] ${bubbleClasses} rounded-2xl px-4 py-2 mb-2"> 
@@ -771,6 +778,7 @@ function appendMessageToChat(msg) {
     // Scroll to the bottom
     chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
 }
+
 function renderChatHistory(patientUsername, messages) {
     const chatMessagesContainer = document.getElementById('chat-messages-container'); 
     if (!chatMessagesContainer) {
@@ -1070,7 +1078,7 @@ socket.on('appointments:update', (data) => {
         else if (activeViewId === 'appointments-view') renderAllAppointments();
         else if (activeViewId === 'calendar-view') renderCalendar();
         
-        // ⭐ FIX: Force refresh the messaging list EVERY time an appointment updates.
+        // FIX: Force refresh the messaging list EVERY time an appointment updates.
         // This ensures that as soon as you click "Accept", the patient appears in your chat list.
         console.log("[Appointments Update] Refreshing chat patient list...");
         socket.emit('doctor:get:patients:chatted:with', { doctorUsername: currentUsername });
@@ -1080,14 +1088,14 @@ socket.on('appointments:update', (data) => {
              // Re-check relevant appointment for current chat if a patient is selected
              if (selectedPatient) {
                   const relevantAppointment = allAppointments
-                       .filter(app => (app.patientName === selectedPatient.patientUsername || app.patientFullName === selectedPatient.patientName) && (app.status === 'Accepted' || app.status === 'Completed') && app.doctorName === currentUsername)
-                       .sort((a, b) => new Date(`${b.appointmentDate.split('T')[0]}T${b.appointmentTime}`) - new Date(`${a.appointmentDate.split('T')[0]}T${a.appointmentTime}`))[0];
-                    
+                        .filter(app => (app.patientName === selectedPatient.patientUsername || app.patientFullName === selectedPatient.patientName) && (app.status === 'Accepted' || app.status === 'Completed') && app.doctorName === currentUsername)
+                        .sort((a, b) => new Date(`${b.appointmentDate.split('T')[0]}T${b.appointmentTime}`) - new Date(`${a.appointmentDate.split('T')[0]}T${a.appointmentTime}`))[0];
+                   
                   const oldAppointmentId = selectedAppointmentIdForChat;
                   selectedAppointmentIdForChat = relevantAppointment ? relevantAppointment.id : null;
                     
                   if (oldAppointmentId !== selectedAppointmentIdForChat) {
-                         console.warn(`[Appointments Update] Relevant appointment ID for current chat changed from ${oldAppointmentId} to ${selectedAppointmentIdForChat}`);
+                           console.warn(`[Appointments Update] Relevant appointment ID for current chat changed from ${oldAppointmentId} to ${selectedAppointmentIdForChat}`);
                   }
              }
         }
@@ -1265,7 +1273,7 @@ socket.on('user:status-changed', ({ username, isOnline }) => {
                         // 1. Construct the full absolute URL
                         const fullRedirectUrl = `${window.location.origin}${res.redirectUrl}`;
                         
-                        // 2. ⭐ FIX: Automatically open the call tab immediately
+                        // 2. FIX: Automatically open the call tab immediately
                         console.log("Auto-opening call URL:", fullRedirectUrl);
                         window.open(fullRedirectUrl, '_blank');
 
@@ -1288,6 +1296,10 @@ socket.on('user:status-changed', ({ username, isOnline }) => {
                 document.getElementById('doctorNotes').readOnly = false;
                 document.getElementById('notesModal').dataset.appointmentId = appId;
                 document.getElementById('saveNotesBtn').classList.remove('hidden');
+                
+                // Set the time in the modal to 12-hour format
+                document.getElementById('notesTime').textContent = formatTime12Hour(app.appointmentTime);
+                
                 setupDiagnosisSelectors(true); 
                 showModal('notesModal');
             }
@@ -1322,8 +1334,8 @@ socket.on('user:status-changed', ({ username, isOnline }) => {
         }
     }
     // --- Finish Appointment Button (Inside Call Details Modal) ---
-    else if (target.id === 'finishAppointmentBtn') { 
-        const currentAppointmentId = target.dataset.appointmentId;
+    else if (e.target.id === 'finishAppointmentBtn') { 
+        const currentAppointmentId = e.target.dataset.appointmentId;
         console.log("[Finish Appointment Button Click] Clicked for ID:", currentAppointmentId);
         hideModal('callDetailsModal'); 
         const appointment = allAppointments.find(app => app.id == currentAppointmentId); 
@@ -1332,7 +1344,9 @@ socket.on('user:status-changed', ({ username, isOnline }) => {
             document.getElementById('notesPatientName').textContent = appointment.patientFullName || appointment.patientName; 
             document.getElementById('notesSubject').textContent = appointment.subject; 
             document.getElementById('notesDate').textContent = new Date(appointment.appointmentDate.split('T')[0] + 'T00:00:00').toLocaleDateString(); 
-            document.getElementById('notesTime').textContent = appointment.appointmentTime; 
+            
+            // Format time for display in notes modal
+            document.getElementById('notesTime').textContent = formatTime12Hour(appointment.appointmentTime); 
             
             // Set up notes section
             document.getElementById('doctorNotes').value = appointment.notes || ''; 
