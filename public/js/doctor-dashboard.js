@@ -705,8 +705,7 @@ function renderPatientList(patients) {
     }
 
     const defaultPatientAvatar = '/images/default-avatar.png'; 
-    const storedSelectedDoctor = sessionStorage.getItem('selectedDoctorUsername'); 
-
+    
     uniquePatients.forEach(patient => {
         const profilePicSrc = patient.patientProfilePicture || defaultPatientAvatar;
         const li = document.createElement('li');
@@ -722,19 +721,18 @@ function renderPatientList(patients) {
                  <div class="text-sm text-[var(--text-secondary)] truncate">Username: ${patient.patientUsername}</div>  
              </div>`;
         
-        // This attaches the necessary click handler that you defined elsewhere in the file (e.g., inside window.onload)
+        // Click handler logic
         li.addEventListener('click', function(event) {
-            // Re-using the click handler delegation logic you set up in DOMContentLoaded
             const conversationItem = event.currentTarget; 
             if (conversationItem) {
-                 const doctorUsername = conversationItem.dataset.patientUsername; // Note: dataset is patientUsername here
-                 if (doctorUsername) {
+                 const patientUsername = conversationItem.dataset.patientUsername; // Note: dataset is patientUsername
+                 if (patientUsername) {
                       document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active', 'bg-[rgba(var(--primary-rgb),0.1)]', 'border-l-[var(--primary-color)]'));
                       conversationItem.classList.add('active', 'bg-[rgba(var(--primary-rgb),0.1)]', 'border-l-[var(--primary-color)]');
                       selectedPatient = patient; 
-                      sessionStorage.setItem('selectedDoctorUsername', doctorUsername); 
-                      // Assuming fetchAndRenderChatHistory exists and takes patientUsername:
-                      fetchAndRenderChatHistory(doctorUsername);
+                      
+                      // Calls the function to switch view and get messages
+                      fetchAndRenderChatHistory(patientUsername);
                  }
             }
         });
@@ -743,9 +741,57 @@ function renderPatientList(patients) {
     });
 }
 
+// --- NEW FUNCTION: Handles logic when a patient is selected in the list ---
+function fetchAndRenderChatHistory(patientUsername) {
+    // 1. Switch UI: Hide "No Conversation" placeholder, Show Active Chat
+    const noConversationView = document.getElementById('no-conversation-view');
+    const activeChatView = document.getElementById('active-chat-view');
+    
+    if (noConversationView) noConversationView.style.display = 'none';
+    if (activeChatView) activeChatView.style.display = 'flex'; // or 'block', usually 'flex' for chat layouts
+
+    // 2. Update Chat Header (Name, Status)
+    const patient = currentPatients.find(p => p.patientUsername === patientUsername);
+    if(patient) {
+        const headerNameEl = document.getElementById('chat-header-name');
+        if(headerNameEl) headerNameEl.textContent = patient.patientName;
+        // You can also update the header image here if you have an ID for it
+        
+        // Reset status to offline or check via socket (status is usually updated via real-time event)
+        const statusEl = document.getElementById('chat-header-status');
+        if(statusEl) statusEl.textContent = 'Checking status...'; 
+    }
+
+    // 3. Determine the correct Appointment ID context for sending messages
+    // We look for the most recent Accepted or Completed appointment for this patient
+    const relevantAppointment = allAppointments
+        .filter(app => (app.patientName === patientUsername || app.patientFullName === patient.patientName) &&
+                       (app.status === 'Accepted' || app.status === 'Completed') &&
+                       app.doctorName === currentUsername)
+        .sort((a, b) => new Date(`${b.appointmentDate.split('T')[0]}T${b.appointmentTime}`) - new Date(`${a.appointmentDate.split('T')[0]}T${a.appointmentTime}`))[0];
+
+    selectedAppointmentIdForChat = relevantAppointment ? relevantAppointment.id : null;
+    
+    if (!selectedAppointmentIdForChat) {
+        console.warn("No active/completed appointment found for this patient. Messages might fail to associate.");
+    } else {
+        console.log(`Chat context set to Appointment ID: ${selectedAppointmentIdForChat}`);
+    }
+
+    // 4. Clear old messages visually
+    document.getElementById('chat-messages-container').innerHTML = '<p class="text-center text-gray-400 mt-4">Loading history...</p>';
+
+    // 5. Emit event to server to get history
+    socket.emit('doctor:get:chat:history', { doctorUsername: currentUsername, patientUsername: patientUsername });
+}
+
+
 function appendMessageToChat(msg) {
     const chatMessagesContainer = document.getElementById('chat-messages-container'); if (!chatMessagesContainer) return;
-    const placeholder = chatMessagesContainer.querySelector('.placeholder-text'); if (placeholder) placeholder.remove(); // Remove "No history" message
+    const placeholder = chatMessagesContainer.querySelector('.placeholder-text'); 
+    const loadingText = chatMessagesContainer.querySelector('.text-center.text-gray-400'); // Remove loading text if present
+    if (placeholder) placeholder.remove(); 
+    if (loadingText) loadingText.remove();
     
     const senderIsDoctor = msg.senderUsername === currentUsername;
     const bubbleClasses = senderIsDoctor ? 'sent ml-auto' : 'received mr-auto'; // Add margin auto for alignment
@@ -1273,7 +1319,7 @@ socket.on('user:status-changed', ({ username, isOnline }) => {
                         // 1. Construct the full absolute URL
                         const fullRedirectUrl = `${window.location.origin}${res.redirectUrl}`;
                         
-                        // 2. FIX: Automatically open the call tab immediately
+                        // 2. FIX: Automatically open the call URL
                         console.log("Auto-opening call URL:", fullRedirectUrl);
                         window.open(fullRedirectUrl, '_blank');
 
@@ -1305,7 +1351,7 @@ socket.on('user:status-changed', ({ username, isOnline }) => {
             }
         }
     // --- Create / Join Call Button (Inside Call Details Modal) ---
-   else if (e.target.id === 'createJoinCallBtn') {
+    else if (e.target.id === 'createJoinCallBtn') {
         const btn = e.target;
         const appId = btn.dataset.appointmentId;
         
