@@ -148,15 +148,13 @@
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
 
-            /* ⭐ REDESIGNED MOBILE CONTAINER LOGIC (Flexbox instead of calc) */
+            /* Container Logic */
             .main-content-wrapper { 
                 padding-top: 7.5rem; 
                 padding-left: 1rem; 
                 padding-right: 1rem;
-                /* REMOVE bottom padding to reclaim space */ 
                 padding-bottom: 0 !important; 
                 
-                /* Force full height and fix scrolling issue */
                 height: 100dvh; 
                 overflow: hidden; /* Stop the wrapper from scrolling */
                 display: flex;
@@ -177,11 +175,12 @@
                 padding: 1.5rem !important;
             }
 
-            /* ⭐ FLEXBOX MESSAGE LAYOUT FOR MOBILE ⭐ */
+            /* ⭐ MESSAGE LAYOUT FIXES FOR SCROLLING (NOT EXPANDING) ⭐ */
             #messages-view {
                 height: 100%;
                 display: flex;
                 flex-direction: column;
+                overflow: hidden; /* Contain children */
             }
 
             .messages-layout {
@@ -189,31 +188,37 @@
                 flex-direction: column;
                 height: 100%;
                 gap: 0.5rem;
+                overflow: hidden; /* Contain children */
             }
 
             /* 1. Sidebar (Doctor List): Fixed small height */
             .messages-sidebar {
-                flex: 0 0 135px; /* Fixed height: Don't grow, don't shrink */
+                flex: 0 0 135px; /* Fixed height */
                 height: 135px !important;
                 overflow-y: auto;
                 margin-bottom: 0;
             }
 
-            /* 2. Chat Content: Fill ALL remaining space */
+            /* 2. Chat Content Container */
             .messages-content {
-                flex: 1; /* Grow to fill whatever space is left */
+                flex: 1; /* Grow to fill remaining space */
                 display: flex;
                 flex-direction: column;
-                min-height: 0; /* Critical for nested flex scrolling */
-                height: auto !important; /* Override fixed heights */
+                min-height: 0; /* CRITICAL for flex child scrolling */
+                height: 100% !important;
+                overflow: hidden; /* Ensure nothing spills out */
+                
                 background: transparent !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
             }
 
-            /* 3. Message List: Scrollable area */
+            /* 3. The Actual Message List (Bubbles) */
             .message-list-container {
-                flex: 1; /* Grow to push input down */
+                /* flex: 1 1 0 tells it to grow, shrink, but start calculation at 0 height.
+                   This forces the scrollbar when content exceeds the flex space. */
+                flex: 1 1 0; 
+                
                 overflow-y: auto !important;
                 -webkit-overflow-scrolling: touch;
                 height: auto !important;
@@ -228,17 +233,16 @@
                 max-width: 85%; 
             }
 
-            /* 4. Input: Fixed at bottom, safe from overlap */
+            /* 4. Input Area */
             .message-input-form-container {
-                flex: 0 0 auto; /* Fixed height */
+                flex: 0 0 auto; /* Do not grow or shrink */
                 background: var(--bg-element);
                 z-index: 10;
-                padding-bottom: 1rem; /* Add safe padding at bottom */
+                padding-bottom: 1rem;
             }
         }
 
         @media (max-width: 480px) {
-            /* .main-content { padding: 0; }  <-- Removed to prevent conflict with flex layout */
             .card, .profile-forms-container .card { padding: 1.25rem; margin-bottom: 1rem; }
             .header { padding: 0.5rem 1rem; }
             .header-welcome h3 { font-size: 1rem; }
