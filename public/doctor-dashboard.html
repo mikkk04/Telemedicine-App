@@ -34,6 +34,9 @@
         }
 
         html.dark {
+            /* --- UPDATED: Native Browser Dark Mode Support --- */
+            color-scheme: dark; 
+
             /* Dark Theme Overrides */
             --primary-color: #4ECCA3;
             --primary-rgb: 78, 204, 163;
@@ -129,6 +132,16 @@
             outline: none;
             box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light), 0 0 0 2px var(--primary-color);
         }
+
+        /* --- UPDATED: Force Dark Mode for Select Options --- */
+        html.dark select.form-input {
+            background-color: var(--bg-element);
+            color: var(--text-primary);
+        }
+        html.dark select.form-input option {
+            background-color: var(--bg-element);
+            color: var(--text-primary);
+        }
         
         /* Sidebar */
         .sidebar-logo {
@@ -203,7 +216,7 @@
                 <a id="callLinkText" href="#" target="_blank" class="text-sm text-blue-400 hover:underline break-all">Link will appear here...</a>
                 <button onclick="copyToken(document.getElementById('callLinkText').href, event)" class="copy-btn action-btn secondary ml-2 !p-2 !rounded-full w-9 h-9"><i class="far fa-copy"></i></button>
             </div>
-            <div class="flex justify-end gap-4 mt-8">
+            <div class="flex justify-center gap-4 mt-8">
                 <button id="finishAppointmentBtn" data-appointment-id="" class="action-btn secondary">Finish Appointment</button>
                 <button id="createJoinCallBtn" data-appointment-id="" class="action-btn primary">Create Call</button>
             </div>
@@ -507,9 +520,6 @@
                  else applyTheme('light');
             }
 
-            // --- Removed Modal Fix for Stacking ---
-            // This logic is now correctly handled in doctor-dashboard.js setupCalendarEventListeners
-
             // Ensure username field is editable after everything loads
             // Using window.onload ensures it runs *after* external scripts potentially finish manipulating the DOM
             window.onload = function() {
@@ -529,5 +539,3 @@
     <script src="js/doctor-dashboard.js"></script>
 </body>
 </html>
-
-<!-- doctor-dashboard.html -->
