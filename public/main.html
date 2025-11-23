@@ -396,17 +396,20 @@
                 position: fixed !important; 
                 top: 0 !important;
                 left: 0 !important;
-                width: 100vw !important;
-                height: 100dvh !important; /* Use dynamic viewport height */
-                background: #fff !important; /* Force white background */
-                z-index: 10000 !important; /* Ensure on top of everything */
+                width: 100vw !important; /* Forces full viewport width */
+                height: 100vh; /* Fallback */
+                height: 100dvh !important; /* Forces full viewport height (dynamic) */
+                background: #fff !important; 
+                z-index: 10000 !important; /* Top priority over everything */
                 flex-direction: column;
                 margin: 0 !important;
                 padding: 0 !important;
                 box-sizing: border-box;
+                right: auto !important; /* Reset any desktop anchoring */
+                bottom: auto !important; /* Reset any desktop anchoring */
             }
 
-            /* This ensures the chat shows up when JS adds 'active' class or inline 'block'/'flex' */
+            /* Force display flex when active on mobile */
             #chat-container.active,
             #chat-container[style*="display: block"],
             #chat-container[style*="display: flex"] {
@@ -421,7 +424,7 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                height: 60px; /* Fixed height for header */
+                height: 60px; /* Fixed height */
                 box-sizing: border-box;
             }
 
@@ -429,7 +432,7 @@
                 flex: 1 1 auto; /* Grow to fill space */
                 overflow-y: auto;
                 padding: 10px;
-                background: #f5f5f5; /* Slight gray for message area */
+                background: #f5f5f5; 
                 width: 100%;
                 box-sizing: border-box;
             }
@@ -452,7 +455,7 @@
                 padding: 10px;
                 border-radius: 20px;
                 border: 1px solid #ccc;
-                min-width: 0; /* Prevent flex overflow */
+                min-width: 0; 
             }
         }
     </style>
