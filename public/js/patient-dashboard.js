@@ -1,4 +1,4 @@
-/* Final Version - Cleaned, Verified, and Themed - with Profile Fixes */
+/* Final Version - Database Sync Fixed & Verified */
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -787,21 +787,37 @@ document.addEventListener('DOMContentLoaded', () => {
          }
      });
 
+    // ⭐ KEY FIX: Handle Username Change Sync
      socket.on('patient:update:profile:success', (data) => { 
          showNotification('Profile updated successfully!');
          if (data && data.profile) {
              userProfile = data.profile;
-             // Update global username if it changed
-             if (data.profile.username && data.profile.username !== currentUsername) {
-                 currentUsername = data.profile.username;
+             
+             // Check if username changed on the server
+             const newUsername = data.profile.username;
+             if (newUsername && newUsername !== currentUsername) {
+                 console.log(`[Patient] Username changed from ${currentUsername} to ${newUsername}`);
+                 
+                 // 1. Update Global Variable
+                 currentUsername = newUsername;
+                 
+                 // 2. Update LocalStorage (Persistence for refresh)
                  localStorage.setItem('telemedicine_user', currentUsername);
+                 
+                 // 3. Update Header
+                 if (headerUsernameDisplay) headerUsernameDisplay.textContent = currentUsername;
+
+                 // 4. CRITICAL: Re-identify Socket with new username so DB queries work
+                 socket.emit('user:online', { username: currentUsername });
              }
+
              renderMyProfile();
          }
      });
 
     socket.on('patient:update:profile:error', (data) => { 
         showNotification(data.message, true);
+        // If error, revert to old data from server
         socket.emit('patient:get:profile', { username: currentUsername });
     });
 
@@ -1042,10 +1058,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-profile-form')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const updatedProfile = {
-            username: document.getElementById('profile-username').value, // Now sends the new username
+            username: document.getElementById('profile-username').value, // The NEW username
             email: document.getElementById('profile-email').value,
             phone: document.getElementById('profile-phone').value,
-            originalUsername: currentUsername // To identify the user if username changes (depends on backend logic)
+            originalUsername: currentUsername // The OLD username (for DB lookup)
         };
         if (!updatedProfile.email) {
             showNotification('Email cannot be empty.', true);
