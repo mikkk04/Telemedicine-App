@@ -628,15 +628,36 @@ function renderProfile() {
 
 function updateProfilePicDisplay(profile) {
     const createPicElement = (src, displayName) => { 
-        const picUrl = src || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName ? displayName.charAt(0) : 'D')}&background=4C7AFB&color=fff&bold=true&size=128`; 
-        const picElement = document.createElement('img'); 
-        picElement.src = picUrl; 
-        picElement.alt = `${displayName || 'Profile'}'s profile picture`; 
-        // Fallback if the src fails to load
-        picElement.onerror = (e) => { 
-            e.target.onerror = null; // Prevent infinite loop if fallback also fails
-            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName ? displayName.charAt(0) : 'D')}&background=4C7AFB&color=fff&bold=true&size=128`; 
-        }; 
+        // Validation: Check for null/undefined strings and empty values
+        let validSrc = src;
+        if (!validSrc || validSrc === 'null' || validSrc === 'undefined') {
+            validSrc = null;
+        }
+
+        // Fix relative paths: If it's a file path like 'uploads/img.png', ensure it starts with '/'
+        // We assume valid sources are absolute HTTP, data URIs, or absolute paths
+        if (validSrc && !validSrc.startsWith('http') && !validSrc.startsWith('data:') && !validSrc.startsWith('/')) {
+             validSrc = '/' + validSrc;
+        }
+
+        const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName ? displayName.charAt(0) : 'D')}&background=4C7AFB&color=fff&bold=true&size=128`;
+        
+        const picElement = document.createElement('img');
+        
+        // Setup error handler BEFORE setting src to catch immediate errors
+        picElement.onerror = (e) => {
+            console.warn("Profile image failed to load, switching to fallback.");
+            e.target.onerror = null; // Remove handler to prevent infinite loop
+            // Only swap if we aren't already using the fallback
+            if (e.target.src !== fallbackUrl) {
+                e.target.src = fallbackUrl;
+            }
+        };
+
+        // Set src (try validSrc first, else fallback)
+        picElement.src = validSrc || fallbackUrl;
+        picElement.alt = `${displayName || 'Profile'}'s profile picture`;
+        
         return picElement; 
     };
     
