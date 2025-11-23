@@ -630,6 +630,7 @@ function renderProfile() {
     updateProfilePicDisplay(doctorProfile); // Update picture first
     
     // NAME FIX: Use fullName if available, otherwise fallback to username
+    // Updated to prioritize staticFullName which should be updated by the Universal Mapper
     const nameToDisplay = doctorProfile.fullName || staticFullName || doctorProfile.username || 'Doctor'; 
     document.getElementById('profile-name').textContent = nameToDisplay;
     
@@ -909,7 +910,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     currentUsername = user.username; 
     currentRole = user.role; 
-    staticFullName = user.fullName; // Store full name separately
+    
+    // Initial staticFullName population from localStorage if available
+    staticFullName = user.fullName || ''; 
+    
     console.log(`User identified: ${currentUsername} (Role: ${currentRole}, FullName: ${staticFullName})`);
 
     // Initial UI setup
@@ -1222,23 +1226,39 @@ socket.on('notification:new-request', (data) => {
 });
 
 
-// Profile Updates
+// Profile Updates - UNIVERSAL MAPPER ADDED HERE
 socket.on('user:profile-update', (data) => { 
     console.log("[Socket] Received user:profile-update", data);
     if (data && data.profile) { 
-        // Update local profile object
-        doctorProfile = data.profile; 
+        // --- UNIVERSAL DATA MAPPER ---
+        // This section forces the data to map correctly regardless of what the database calls the columns
+        const raw = data.profile;
         
-        // Update staticFullName if needed (this might come from login or profile update)
-        if (data.profile.fullName && (!staticFullName || staticFullName !== data.profile.fullName)) { 
-            staticFullName = data.profile.fullName; 
+        const normalizedProfile = {
+            ...raw,
+            // Map ALL possible database column names to standard frontend names
+            fullName: raw.fullName || raw.full_name || raw.name || raw.complete_name || '',
+            dob: raw.dob || raw.birth_date || raw.date_of_birth || '',
+            address: raw.address || raw.location || raw.home_address || '',
+            phone: raw.phone || raw.phone_number || raw.contact_number || raw.mobile || '',
+            email: raw.email || raw.email_address || '',
+            username: raw.username || raw.user_name || '',
+            profilePicture: raw.profilePicture || raw.profile_picture || raw.avatar || raw.image || ''
+        };
+        
+        // Update local profile object with normalized data
+        doctorProfile = normalizedProfile; 
+        
+        // Update staticFullName if needed
+        if (normalizedProfile.fullName && (!staticFullName || staticFullName !== normalizedProfile.fullName)) { 
+            staticFullName = normalizedProfile.fullName; 
             localStorage.setItem('telemedicine_fullname', staticFullName); 
             console.log("Updated staticFullName to:", staticFullName);
         }
         
         // Update UI elements
-        updateWelcomeMessage(doctorProfile); // Updates header and welcome message
-        updateProfilePicDisplay(doctorProfile); // Updates profile and header pics
+        updateWelcomeMessage(doctorProfile); 
+        updateProfilePicDisplay(doctorProfile); 
         
         // If profile view is active, re-render it
         if (document.getElementById('profile-view')?.classList.contains('hidden') === false) {
@@ -1250,12 +1270,12 @@ socket.on('user:profile-update', (data) => {
         if (localUsername !== doctorProfile.username) { 
             localStorage.setItem('telemedicine_user', doctorProfile.username); 
             currentUsername = doctorProfile.username; 
-            console.log("Username updated locally via profile update:", currentUsername); 
         } 
     } else {
          console.warn("[Socket] Received user:profile-update without valid profile data.");
     }
 });
+
 // Confirmation messages from server after profile/pic updates initiated by this client
 socket.on('doctor:profile:updated', (response) => { 
     if (response.success) { 
