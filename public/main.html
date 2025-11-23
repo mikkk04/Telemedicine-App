@@ -234,7 +234,6 @@
             width: 100%;
             box-sizing: border-box;
         }
-        /* UPDATED ACTION BUTTON STYLES (No Icons) */
         .action-btn {
             padding: 15px 40px; /* Larger padding for pill shape */
             border: none;
@@ -244,7 +243,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* gap: 10px; Removed gap since no icon */
             cursor: pointer;
             transition: transform 0.1s, background-color 0.2s;
             white-space: nowrap;
@@ -504,10 +502,11 @@
                 </div>
 
                 <div id="chat-controls" class="chat-controls">
-                    <label id="fileIcon" class="file-icon" title="Attach File">
+                    <div id="fileIcon" class="file-icon" title="Attach File" style="cursor: pointer;">
                         <i class="fas fa-paperclip"></i>
-                        <input type="file" id="fileInput" class="file-input" style="display: none;" />
-                    </label>
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" style="display: none;" />
+                    
                     <button id="takePictureBtn" title="Take a Picture"><i class="fas fa-camera"></i></button>
                     <input id="chatInput" type="text" class="chat-input" placeholder="Type a message..." disabled>
                     <button id="sendChatBtn" title="Send Message" disabled><i class="fas fa-paper-plane"></i></button>
