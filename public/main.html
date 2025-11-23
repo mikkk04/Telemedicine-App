@@ -62,8 +62,202 @@
             background-color: #3F51B5;
         }
 
+        /* --- CAMERA POV & PREVIEW SPECIFIC STYLES --- */
+        
+        /* Camera POV Container */
+        .camera-pov-interface {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Camera Header (Back button, Switch, Indicator) */
+        .camera-pov-header {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Video Wrapper */
+        .camera-pov-video-wrapper {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+        }
+        #cameraPovVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Camera Bottom Controls */
+        .camera-pov-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none; /* Let clicks pass through empty areas */
+        }
+
+        /* Circular Utility Buttons (Back, Switch) */
+        .cam-overlay-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            pointer-events: auto;
+        }
+        .cam-overlay-btn:active {
+            transform: scale(0.95);
+            background: rgba(0, 0, 0, 0.6);
+        }
+        .cam-overlay-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Recording Indicator */
+        .recording-indicator {
+            background: rgba(255, 0, 0, 0.2);
+            backdrop-filter: blur(4px);
+            color: #ff4444;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+        .recording-dot {
+            font-size: 0.7rem;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* Main Shutter Button */
+        .cam-shutter-btn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.1s;
+        }
+        .cam-shutter-inner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: white;
+            transition: all 0.2s;
+        }
+        /* Style changes when recording */
+        .cam-shutter-btn.recording .cam-shutter-inner {
+            background: #ff4444;
+            border-radius: 8px;
+            width: 30px;
+            height: 30px;
+        }
+        .cam-shutter-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Shot Preview Interface */
+        .shot-preview-interface {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 350;
+            flex-direction: column;
+        }
+        .shot-preview-image-wrapper {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #111;
+        }
+        .preview-controls {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .action-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        .retake-btn {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+        }
+        .send-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+
         /* --- MOBILE ONLY STYLES (Max-width 768px) --- */
-        /* These styles will NOT affect your desktop view */
         @media (max-width: 768px) {
             
             /* Base Call Interface Layout for Mobile */
@@ -232,38 +426,6 @@
                 border-radius: 20px;
                 border: 1px solid #ccc;
             }
-
-            /* Camera POV Interface Mobile Fix */
-            #camera-pov-interface {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: #000;
-                z-index: 300;
-                display: flex;
-                flex-direction: column;
-            }
-            .camera-pov-video-wrapper {
-                flex: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-            }
-            #cameraPovVideo {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-            .camera-pov-controls {
-                position: absolute;
-                bottom: 30px;
-                width: 100%;
-                display: flex;
-                justify-content: center;
-            }
         }
     </style>
 </head>
@@ -341,37 +503,42 @@
     </div>
 
     <div id="camera-pov-interface" class="camera-pov-interface" style="display: none;">
-        <div class="camera-pov-header" style="position: absolute; top: 10px; left: 10px; z-index: 10; width: 100%; display:flex; justify-content: space-between; padding-right: 20px; box-sizing: border-box;">
-            <button id="backToCallBtn" class="control-btn" title="Back to Call" style="background: rgba(0,0,0,0.5); color: #fff; border: none; padding: 10px; border-radius: 50%;">
+        <div class="camera-pov-header">
+            <button id="backToCallBtn" class="cam-overlay-btn" title="Back to Call">
                 <i class="fas fa-arrow-left"></i>
             </button>
             
-            <span id="recordingIndicator" class="recording-indicator" style="color: red; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 15px;">
+            <span id="recordingIndicator" class="recording-indicator" style="display: none;">
                 <i class="fas fa-circle recording-dot"></i> REC
             </span>
-            <button id="switchCamPovBtn" class="control-btn camera-switch-btn" title="Switch Camera" style="background: rgba(0,0,0,0.5); color: #fff; border: none; padding: 10px; border-radius: 50%;">
+
+            <button id="switchCamPovBtn" class="cam-overlay-btn" title="Switch Camera" disabled>
                 <i class="fas fa-sync-alt"></i>
             </button>
         </div>
+        
         <div class="camera-pov-video-wrapper">
             <video id="cameraPovVideo" autoplay playsinline muted></video>
         </div>
+        
         <div class="camera-pov-controls">
-            <button id="captureShotBtn" class="capture-btn" title="Capture Photo or Record Video" style="width: 70px; height: 70px; border-radius: 50%; background: white; border: 4px solid #ccc;"></button>
+            <div id="captureShotBtn" class="cam-shutter-btn" title="Tap to Snap, Hold to Record">
+                <div class="cam-shutter-inner"></div>
+            </div>
         </div>
     </div>
 
-    <div id="shot-preview-interface" class="shot-preview-interface" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 350;">
-        <div class="shot-preview-image-wrapper" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+    <div id="shot-preview-interface" class="shot-preview-interface">
+        <div class="shot-preview-image-wrapper">
             <img id="capturedShotImage" src="" alt="Captured Photo" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
             <video id="capturedVideoPreview" src="" controls playsinline style="display: none; max-width: 100%; max-height: 100%;"></video>
         </div>
-        <div class="preview-controls" style="position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-around;">
-            <button id="retakeShotBtn" class="action-btn retake-btn" title="Retake" style="background: #ff4444; color: white; padding: 10px 20px; border: none; border-radius: 20px;">
+        <div class="preview-controls">
+            <button id="retakeShotBtn" class="action-btn retake-btn">
                 <i class="fas fa-camera-rotate"></i> Retake
             </button>
-            <button id="sendShotBtn" class="action-btn send-btn" title="Upload & Send" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 20px;">
-                <i class="fas fa-arrow-up-from-bracket"></i> Send
+            <button id="sendShotBtn" class="action-btn send-btn">
+                <i class="fas fa-paper-plane"></i> Send
             </button>
         </div>
     </div>
