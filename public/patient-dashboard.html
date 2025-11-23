@@ -164,19 +164,52 @@
                 padding: 1.5rem !important;
             }
 
-            /* ⭐ MESSAGE BOX FIX FOR MOBILE ⭐ */
-            /* This forces the message container to be scrollable on mobile instead of expanding infinitely */
-            .message-list-container {
-                height: 450px; /* Fixed height so scrolling activates */
-                max-height: 60vh; /* Fallback for smaller screens */
-                overflow-y: auto !important; /* Force scrollbar */
-                border: 1px solid rgba(0,0,0,0.05); /* Optional: subtle border to define the area */
-                border-radius: 12px;
-                background-color: rgba(0,0,0,0.02); /* Optional: subtle bg to distinguish area */
+            /* ⭐ MESSAGES LAYOUT FIX FOR MOBILE ⭐ */
+            
+            /* 1. Constraint the Doctor List height so it doesn't push chat off screen */
+            .messages-sidebar {
+                height: 140px !important;
+                min-height: 140px !important;
+                flex-grow: 0 !important;
+                overflow-y: auto;
+                margin-bottom: 0.5rem;
             }
+
+            /* 2. Container for the actual chat area */
+            .messages-content {
+                /* Calculate remaining height: 100dvh - (Header+PaddingTop ~120px) - (DocList ~140px) - (PaddingBottom ~64px) */
+                height: calc(100dvh - 340px) !important; 
+                min-height: 300px; /* Minimum safety height */
+                display: flex;
+                flex-direction: column;
+                background: transparent !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            /* 3. The scrollable message bubbles area */
+            .message-list-container {
+                flex-grow: 1; /* Take up all available space in parent */
+                height: auto !important; /* Override fixed height */
+                max-height: none !important;
+                overflow-y: auto !important; /* Force scrollbar */
+                -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+                
+                border: 1px solid rgba(0,0,0,0.05); 
+                border-radius: 12px;
+                background-color: rgba(0,0,0,0.02); 
+            }
+            
             /* Ensure the message bubbles don't get cut off */
             .message-bubble {
                 max-width: 85%; /* Allow wider bubbles on mobile */
+            }
+
+            /* 4. Ensure input stays at bottom */
+            .message-input-form-container {
+                flex-shrink: 0;
+                background: var(--bg-element);
+                z-index: 10;
             }
         }
 
@@ -642,7 +675,7 @@
                                          <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
                                             <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
                                             <p class="text-sm mt-2">Loading...</p>
-                                        </div>
+                                         </div>
                                     </div>
                                 </div>
                                 <div class="card">
@@ -653,7 +686,7 @@
                                          <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
                                             <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
                                             <p class="text-sm mt-2">Loading...</p>
-                                        </div>
+                                         </div>
                                     </div>
                                 </div>
                                 <div class="card">
@@ -664,7 +697,7 @@
                                          <div class="placeholder-container flex flex-col justify-center items-center text-center p-10 h-full" role="listitem">
                                             <i class="fas fa-spinner fa-spin text-3xl text-[var(--primary-color)]"></i>
                                             <p class="text-sm mt-2">Loading...</p>
-                                        </div>
+                                         </div>
                                     </div>
                                 </div>
                             </div>
