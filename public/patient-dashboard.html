@@ -175,9 +175,11 @@
             }
             
             .main-content {
+                /* For Dashboard: Just a container */
                 min-height: auto;
             }
 
+            /* For Messages: Flex container */
             body.messages-active .main-content {
                 flex: 1;
                 display: flex;
@@ -190,6 +192,11 @@
                 width: 95% !important;
                 max-width: 95% !important;
                 padding: 1.5rem !important;
+            }
+            
+            /* ⭐ UTILITY: Force Hide views not in use */
+            .view-container.hidden {
+                display: none !important;
             }
 
             /* ⭐ MESSAGE LAYOUT FIXES ⭐ */
@@ -890,6 +897,9 @@
                     const view = link.getAttribute('data-view');
                     if (view) {
                         handleViewChange(view);
+                    } else if (link.id !== 'requestAppointmentLink') {
+                        // If it's a link but not a view switcher (and not the modal trigger), assume we left messages
+                         body.classList.remove('messages-active');
                     }
                 });
             });
