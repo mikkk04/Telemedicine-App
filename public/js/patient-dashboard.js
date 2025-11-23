@@ -1,5 +1,5 @@
-/* Final Version - Cleaned, Verified, and Themed */
-'use strict'; // Added strict mode for better code quality and error prevention
+/* Final Version - Cleaned, Verified, and Themed - with Profile Fixes */
+'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
     let currentUsername = null;
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let userProfile = {};
     let currentConversations = [];
     let selectedDoctorUsername = null;
-    let selectedConversationAppointmentId = null; // ⭐ UPDATE: Added this variable back
+    let selectedConversationAppointmentId = null;
 
     const socket = io();
 
@@ -103,8 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (viewName === 'request-appointment') { // Special case for modal trigger
             title = 'Request an Appointment';
             openModal('appointment-modal');
-            document.getElementById('main-header-title').textContent = title; // Set title immediately for modal case
-            return; // Don't proceed with usual view switching logic
+            document.getElementById('main-header-title').textContent = title; 
+            return; 
         } else {
             title = viewName.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
         }
@@ -125,9 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (viewName === 'dashboard') {
             renderDashboardAppointments();
         } else if (viewName === 'messages') {
-            fetchPatientConversations(); // Fetch conversations when Messages view is activated
+            fetchPatientConversations(); 
         } else if (viewName === 'my-profile') {
-            renderMyProfile(); // Render profile when Profile view is activated
+            renderMyProfile(); 
         }
     }
 
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.add('show');
-            document.body.classList.add('modal-open'); // Helps prevent background scrolling
+            document.body.classList.add('modal-open'); 
         }
     }
 
@@ -189,8 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 modalCallLink.href = callLink;
                 modalCallLink.textContent = "Click here to open the call link";
                  modalCallLink.onclick = (e) => { // Prevent default and navigate
-                     e.preventDefault();
-                     window.location.href = callLink;
+                      e.preventDefault();
+                      window.location.href = callLink;
                  };
             }
 
@@ -207,8 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
             readyDetails.classList.add('hidden');
             joinButton.classList.add('disabled');
             joinButton.setAttribute('disabled', 'true');
-            joinButton.href = '#'; // Make it non-functional
-            joinButton.onclick = null; // Remove previous onclick handler
+            joinButton.href = '#'; 
+            joinButton.onclick = null; 
         }
     }
 
@@ -216,11 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPatientCallDetailsModal(appointment) {
         const modal = document.getElementById('patient-call-details-modal');
         if (!modal) return;
-        modal.dataset.appointmentId = appointment.id; // Store ID for potential refreshes
+        modal.dataset.appointmentId = appointment.id; 
         document.getElementById('modal-doctor-name').textContent = `Dr. ${appointment.doctorName || 'N/A'}`;
         document.getElementById('modal-appointment-date').textContent = appointment.appointmentDate ? new Date(appointment.appointmentDate.split('T')[0] + 'T00:00:00').toLocaleDateString() : 'N/A';
         document.getElementById('modal-appointment-time').textContent = appointment.appointmentTime || 'N/A';
-        updateCallModalStatus(appointment); // Set initial status
+        updateCallModalStatus(appointment); 
         openModal('patient-call-details-modal');
     }
 
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
             notesLabel.textContent = 'Reason:';
             notesContentDiv.textContent = appointment.rejectionNotes || 'No reason provided.';
             downloadBtn.style.display = 'none'; // Hide download for rejection
-        } else { // Completed or other statuses with notes
+        } else { 
             notesLabel.textContent = "Doctor's Notes/Diagnosis:";
             notesContentDiv.textContent = appointment.notes || 'No notes were provided for this appointment.';
             downloadBtn.style.display = 'block'; // Show download for notes
@@ -249,13 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal('patient-notes-modal');
     }
 
-    // ⭐ FIX: Added this function to handle opening the reschedule modal
     function openRescheduleResponseModal(appointment) {
         selectedAppointmentForReschedule = appointment;
         const modal = document.getElementById('reschedule-response-modal');
         
         if (modal) {
-            // Attempt to populate modal details if elements exist
             const doctorNameEl = document.getElementById('reschedule-doctor-name');
             const newTimeEl = document.getElementById('reschedule-new-time');
             
@@ -275,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Appointment Rendering Logic ---
     function renderDashboardAppointments() {
-        console.log('[Patient][Render] Starting renderDashboardAppointments...'); // Log start
+        console.log('[Patient][Render] Starting renderDashboardAppointments...'); 
         const upcomingList = document.getElementById('upcoming-appointments-list');
         const pendingList = document.getElementById('pending-appointments-list');
         const rescheduleList = document.getElementById('reschedule-requests-list');
@@ -288,13 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
         pendingList.innerHTML = '';
         rescheduleList.innerHTML = '';
 
-        console.log(`[Patient][Render] Using appointments array (count: ${appointments.length}):`, JSON.stringify(appointments));
-
         const upcomingAppointments = appointments.filter(app => app.patientName === currentUsername && app.status === 'Accepted');
         const pendingAppointments = appointments.filter(app => app.patientName === currentUsername && app.status === 'Pending');
         const rescheduleRequests = appointments.filter(app => app.patientName === currentUsername && app.status === 'Rescheduled-Pending');
-
-        console.log(`[Patient][Render] Filtered counts - Upcoming: ${upcomingAppointments.length}, Pending: ${pendingAppointments.length}, Reschedule: ${rescheduleRequests.length}`);
 
         // Render Upcoming Appointments
         if (upcomingAppointments.length === 0) {
@@ -378,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 rescheduleList.appendChild(li);
             });
         }
-        console.log('[Patient][Render] Finished renderDashboardAppointments.'); // Log end
+        console.log('[Patient][Render] Finished renderDashboardAppointments.'); 
     }
 
 
@@ -386,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderConsultationHistory() {
         const historyList = document.getElementById('consultation-history-list');
         if (!historyList) return;
-        historyList.innerHTML = ''; // Clear previous entries
+        historyList.innerHTML = ''; 
         const pastAppointments = appointments.filter(app => app.patientName === currentUsername && (app.status === 'Completed' || app.status === 'Rejected'));
 
         if (pastAppointments.length === 0) {
@@ -398,13 +392,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Sort by date, newest first
         pastAppointments.sort((a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate));
 
         pastAppointments.forEach(app => {
             const card = document.createElement('div');
             const statusClass = app.status.toLowerCase();
-            card.className = `consultation-card ${statusClass} flex flex-col`; // Use Tailwind for layout
+            card.className = `consultation-card ${statusClass} flex flex-col`; 
             card.dataset.appointmentId = app.id;
 
             let actionText = app.status === 'Rejected' ? 'View Reason' : 'View Summary';
@@ -435,23 +428,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMyProfile() {
         if (!userProfile || Object.keys(userProfile).length === 0) {
             console.warn("User profile data not available for rendering.");
-            return; // Exit if no profile data
+            return; 
         }
 
+        // --- 1. Fix Profile Picture Logic ---
         const profileAvatar = document.querySelector('.profile-avatar');
         const headerAvatar = document.querySelector('.user-avatar');
-        const defaultAvatarPath = '/images/default-avatar.png'; // Make sure this path is correct
+        const defaultAvatarPath = '/images/default-avatar.png'; 
 
-        // Function to safely set image source
         const setAvatarSource = (imgElement, src) => {
             if (imgElement) {
-                imgElement.src = src || defaultAvatarPath;
-                imgElement.onerror = () => { imgElement.src = defaultAvatarPath; }; // Fallback on error
+                // Determine if src is a valid data URL or path, otherwise use default
+                const validSrc = (src && (src.startsWith('data:image') || src.startsWith('/') || src.startsWith('http'))) 
+                                ? src 
+                                : defaultAvatarPath;
+                imgElement.src = validSrc;
+                imgElement.onerror = () => { imgElement.src = defaultAvatarPath; }; 
             }
         };
 
         setAvatarSource(profileAvatar, userProfile.profilePicture);
         setAvatarSource(headerAvatar, userProfile.profilePicture);
+
+        // --- 2. Fix Full Name Display ---
+        // Prioritize explicit fullName, fall back to First+Last, then Username
+        let displayFullName = userProfile.fullName;
+        if (!displayFullName && userProfile.firstName && userProfile.lastName) {
+            displayFullName = `${userProfile.firstName} ${userProfile.lastName}`;
+        }
+        if (!displayFullName) {
+            displayFullName = userProfile.username || 'N/A';
+        }
 
         // Calculate Age
         let ageText = 'N/A';
@@ -465,7 +472,6 @@ document.addEventListener('DOMContentLoaded', () => {
                      calculatedAge--;
                  }
                  ageText = calculatedAge >= 0 ? `${calculatedAge} years old` : 'N/A';
-                 // Optionally store the number if needed elsewhere
                  userProfile.age = calculatedAge >= 0 ? calculatedAge : null;
              } catch(e) { console.error("Error calculating age:", e); }
         }
@@ -477,12 +483,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (element) element.textContent = value || 'N/A';
         };
 
-        updateText('profile-full-name', userProfile.fullName);
-        updateText('profile-age', ageText); // Use the calculated ageText
+        updateText('profile-full-name', displayFullName); // Uses the corrected full name logic
+        updateText('profile-age', ageText); 
         updateText('profile-address', userProfile.address);
         updateText('profile-contact', userProfile.phone);
 
-        // Update form inputs safely
+        // Update form inputs
         const updateInput = (id, value) => {
             const element = document.getElementById(id);
             if (element) element.value = value || '';
@@ -492,28 +498,29 @@ document.addEventListener('DOMContentLoaded', () => {
         updateInput('profile-email', userProfile.email);
         updateInput('profile-phone', userProfile.phone);
 
-        // Ensure username is not editable in the form
+        // --- 3. Fix Editable Username ---
+        // Ensure username IS editable (removed the disabled = true logic)
         const usernameInput = document.getElementById('profile-username');
-        if (usernameInput) usernameInput.disabled = true;
+        if (usernameInput) {
+            usernameInput.disabled = false; // Explicitly enable it
+        }
     }
 
 
     // --- Messages View Rendering ---
     function fetchPatientConversations() {
-        // Filter appointments to find unique doctors the patient has interacted with
         const consultations = appointments.filter(app =>
             app.patientName === currentUsername &&
             (app.status === 'Completed' || app.status === 'Accepted') &&
-            app.doctorName // Ensure doctorName is present
+            app.doctorName 
         );
         const doctors = {};
         consultations.forEach(app => {
             if (!doctors[app.doctorName]) {
-                 // Fetch doctor profile picture from the appointment data itself
                 doctors[app.doctorName] = {
                     doctorName: app.doctorName,
                     specialty: app.specialty,
-                    profilePicture: app.doctorProfilePic // Use the picture from the joined appointment data
+                    profilePicture: app.doctorProfilePic 
                 };
             }
         });
@@ -524,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDoctorConversationList(doctors) {
         const listContainer = document.getElementById('doctor-conversations-list');
         if (!listContainer) return;
-        listContainer.innerHTML = ''; // Clear previous list
+        listContainer.innerHTML = ''; 
 
         if (doctors.length === 0) {
             listContainer.innerHTML = '<p class="placeholder-text-center text-sm text-[var(--text-secondary)] m-auto">You have no past conversations.</p>';
@@ -535,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         doctors.forEach(doctor => {
             const li = document.createElement('div');
-            li.className = 'doctor-card'; // Use existing styles
+            li.className = 'doctor-card'; 
             li.dataset.doctorUsername = doctor.doctorName;
 
             const avatarSrc = doctor.profilePicture || defaultDoctorAvatarPath;
@@ -551,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
             listContainer.appendChild(li);
         });
         
-        // Restore selection if needed
         const storedSelectedDoctor = sessionStorage.getItem('selectedDoctorUsername');
         if (storedSelectedDoctor) {
             selectedDoctorUsername = storedSelectedDoctor;
@@ -568,33 +574,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Chat History Rendering ---
     function fetchAndRenderChatHistory(doctorUsername) {
-         // ⭐ UPDATE: Logic to find appointment ID for messaging
          const relevantAppointment = appointments
             .filter(app => app.doctorName === doctorUsername && app.patientName === currentUsername && (app.status === 'Accepted' || app.status === 'Completed'))
-            .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0]; // Sort by creation date descending
+            .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0]; 
 
         if (relevantAppointment) {
             selectedConversationAppointmentId = relevantAppointment.id;
             console.log(`[Patient][Chat] Switched chat to Dr. ${doctorUsername}, using appointment ID: ${selectedConversationAppointmentId}`);
         } else {
-            selectedConversationAppointmentId = null; // Reset if no relevant appointment found
+            selectedConversationAppointmentId = null; 
             console.warn(`[Patient][Chat] No active or completed appointment found for Dr. ${doctorUsername}. Cannot determine appointment ID for sending messages.`);
         }
         
-        // Update header
         const messagesHeader = document.getElementById('messages-header');
         if (messagesHeader) {
             messagesHeader.innerHTML = `<h3 class="m-0 text-lg font-semibold text-[var(--text-primary)]">Conversation with Dr. ${doctorUsername}</h3>`;
         }
-        // Show loading state
+
         const messageListContainer = document.getElementById('message-list-container');
          if (messageListContainer) {
             messageListContainer.innerHTML = '<p class="placeholder-text-center m-auto text-sm text-[var(--text-secondary)]">Loading messages...</p>';
          }
-        // Show input form
+
          document.getElementById('patient-message-input-form').style.display = 'flex';
 
-        // Request history from server
         socket.emit('patient:get:chat:history', { patientUsername: currentUsername, doctorUsername });
     }
 
@@ -602,7 +605,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageListContainer = document.getElementById('message-list-container');
         if (!messageListContainer) return;
 
-        // Remove placeholder if it exists
         const placeholder = messageListContainer.querySelector('.placeholder-text-center');
         if (placeholder) placeholder.remove();
 
@@ -610,23 +612,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSentByMe = msg.senderUsername === patientUsername;
         messageDiv.className = `message-item flex flex-col ${isSentByMe ? 'items-end' : 'items-start'}`;
 
-        // Handle file links vs plain text
         let contentHtml = '';
         if (msg.fileUrl) {
-            // Basic check if it's an image
             const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(msg.fileUrl);
             if (isImage) {
                  contentHtml = `<a href="${msg.fileUrl}" target="_blank" class="block max-w-[200px]"><img src="${msg.fileUrl}" alt="Shared image" class="rounded-lg object-contain"></a>`;
             } else {
-                 // Generic file link
                  const fileName = msg.fileUrl.split('/').pop();
                  contentHtml = `<a href="${msg.fileUrl}" target="_blank" download="${fileName}" class="chat-file-link flex items-center gap-2 text-inherit hover:underline">
                     <i class="fas fa-file-alt"></i> ${msg.message || fileName}
                 </a>`;
             }
         } else {
-            // Plain text message
-            contentHtml = msg.message || ''; // Ensure it's not undefined
+            contentHtml = msg.message || ''; 
         }
 
         messageDiv.innerHTML = `
@@ -635,10 +633,8 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         messageListContainer.appendChild(messageDiv);
 
-        // Scroll to the bottom
         messageListContainer.scrollTop = messageListContainer.scrollHeight;
 
-         // Play sound for received messages
         if (!isSentByMe && notificationSound) {
             notificationSound.play().catch(e => console.error("Audio play failed on receive:", e));
         }
@@ -648,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderChatMessages(messages, patientUsername) {
         const messageListContainer = document.getElementById('message-list-container');
         if (!messageListContainer) return;
-        messageListContainer.innerHTML = ''; // Clear existing messages
+        messageListContainer.innerHTML = ''; 
 
         if (!messages || messages.length === 0) {
             messageListContainer.innerHTML = '<p class="placeholder-text-center text-sm text-[var(--text-secondary)] m-auto">No chat history. Say hello!</p>';
@@ -674,28 +670,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (loggedInUser && role === 'Patient') {
         currentUsername = loggedInUser;
-        currentUserFullName = localStorage.getItem('telemedicine_fullname') || currentUsername; // Use stored full name or fallback
+        currentUserFullName = localStorage.getItem('telemedicine_fullname') || currentUsername; 
         if (headerUsernameDisplay) {
-            headerUsernameDisplay.textContent = currentUsername; // Show username in header dropdown area
+            headerUsernameDisplay.textContent = currentUsername; 
         }
-        document.getElementById('patient-name-banner').textContent = currentUserFullName; // Show full name in banner
+        document.getElementById('patient-name-banner').textContent = currentUserFullName; 
     } else {
         alert('You must be logged in as a Patient to view this page.');
-        window.location.href = '/'; // Redirect to login
-        return; // Stop script execution
+        window.location.href = '/'; 
+        return; 
     }
-    document.body.classList.add('loaded'); // Indicate page is ready (useful for CSS transitions)
-    showView('dashboard'); // Show dashboard by default
+    document.body.classList.add('loaded'); 
+    showView('dashboard'); 
 
 
     // --- Fetch Initial Data ---
     function fetchAllPatientData() {
         console.log(`[Patient][Fetch] Requesting all data for ${currentUsername}`);
         if (!currentUsername) return;
-        // ⭐ UPDATE: Use 'get:all:appointments'
         socket.emit('get:all:appointments'); 
         socket.emit('patient:get:profile', { username: currentUsername });
-        // If messages view is active, refresh the current conversation
         if (document.querySelector('.nav-link.active')?.dataset.view === 'messages' && selectedDoctorUsername) {
              fetchAndRenderChatHistory(selectedDoctorUsername);
         }
@@ -705,14 +699,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Socket.IO Event Listeners ---
     socket.on('connect', () => {
         console.log(`[Patient][Socket] Connected: ${socket.id}. Identifying as user: ${currentUsername}`);
-        // ⭐ UPDATE: Wait for user:online confirmation
         socket.emit('user:online', { username: currentUsername }, (response) => {
             console.log('[Patient][Socket] user:online acknowledged by server:', response);
             if (response && response.success) {
                 console.log('[Patient][Socket] User identified. Proceeding with initial data fetch.');
-                fetchAllPatientData(); // Fetch data ONLY after server confirms
-                clearInterval(refreshInterval); // Clear any previous interval
-                refreshInterval = setInterval(fetchAllPatientData, 15000); // Start refresh interval
+                fetchAllPatientData(); 
+                clearInterval(refreshInterval); 
+                refreshInterval = setInterval(fetchAllPatientData, 15000); 
             } else {
                 console.error('[Patient][Socket] Failed to identify user...', response?.message);
                 showNotification('Error connecting to user session. Please refresh.', true);
@@ -722,73 +715,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('disconnect', () => {
         console.warn('[Patient][Socket] Disconnected from server.');
-        clearInterval(refreshInterval); // Clear interval on disconnect
+        clearInterval(refreshInterval); 
         showNotification('Connection lost. Please log in again.', true);
         setTimeout(() => { window.location.href = '/'; }, 1500);
     });
 
-    // ⭐ START: Added Listener for Real-time Updates
     socket.on('appointments:refetch', () => {
         console.log('[Patient][Socket] Received appointments:refetch. Fetching data...');
-        // ⭐ UPDATE: Call the correct data fetch function
         fetchAllPatientData();
     });
-    // ⭐ END: Added Listener
 
     socket.on('appointments:update', (data) => {
         console.log('[Patient][Socket] Received appointments:update');
         if (data && data.appointments) {
             
-            // Check for specific notifications before updating the list
             const newAppointments = data.appointments;
-            const oldAppointments = appointments; // Compare against the current list
+            const oldAppointments = appointments; 
 
             newAppointments.forEach(newApp => {
                 const oldApp = oldAppointments.find(app => app.id === newApp.id);
                 if (oldApp) {
-                    // Check for status changes to notify
                     if (oldApp.status === 'Pending' && newApp.status === 'Accepted') {
                         showNotification(`Your appointment for "${newApp.subject}" has been accepted.`);
                     }
                     if (oldApp.status === 'Pending' && newApp.status === 'Rejected') {
                         showNotification(`Your appointment for "${newApp.subject}" was rejected.`, true);
                     }
-                     // This notification is now handled by 'notification:reschedule-request'
-                    // if ((oldApp.status === 'Pending' || oldApp.status === 'Accepted') && newApp.status === 'Rescheduled-Pending') {
-                    //     showNotification(`Dr. ${newApp.doctorName} proposed a new time for your appointment.`);
-                    // }
-                } else {
-                     // Check if it's a *new* pending request (submitted by this client)
-                     // Optimistic update already handled this, so no extra notification needed
-                }
+                } 
             });
 
 
-     appointments = newAppointments; // Update the local appointment data
+            appointments = newAppointments; 
             console.log(`[Patient] Updated global appointments array (count: ${appointments.length}):`, JSON.stringify(appointments));
 
 
-            // ⭐ FIX 1: ALWAYS refresh the doctor contact list (Conversation Partners).
             console.log("[Patient] Refreshing doctor conversation list based on new data...");
             fetchPatientConversations(); 
 
-            // ⭐ FIX 2: Always re-render dashboard list.
             renderDashboardAppointments(); 
 
-            // Re-render History only if the view is actively open.
             const currentView = document.querySelector('.view-container:not(.hidden)')?.id?.replace('-view', '');
             if (currentView === 'my-health') {
                 console.log("[Patient] Also triggering renderConsultationHistory...");
                 renderConsultationHistory();
             } 
             
-            // Check if the call details modal is open and needs updating
             const callModal = document.getElementById('patient-call-details-modal');
             if (callModal && callModal.classList.contains('show')) {
                  const modalAppId = callModal.dataset.appointmentId;
                  const updatedAppointmentForModal = appointments.find(app => app.id == modalAppId);
                  if (updatedAppointmentForModal) {
-                    updateCallModalStatus(updatedAppointmentForModal); // Refresh modal status
+                    updateCallModalStatus(updatedAppointmentForModal); 
                  }
             }
         } else {
@@ -798,19 +775,32 @@ document.addEventListener('DOMContentLoaded', () => {
      socket.on('patient:profile:data', (data) => {
          if(data) {
              userProfile = data;
-             currentUserFullName = data.fullName || currentUsername; // Update full name
+             // Logic to determine full name for top banner
+             let fullNameForBanner = data.fullName;
+             if (!fullNameForBanner && data.firstName && data.lastName) {
+                 fullNameForBanner = `${data.firstName} ${data.lastName}`;
+             }
+             currentUserFullName = fullNameForBanner || currentUsername; 
+             
              document.getElementById('patient-name-banner').textContent = currentUserFullName;
-             renderMyProfile(); // Re-render profile section
+             renderMyProfile(); 
          }
      });
 
-     socket.on('patient:update:profile:success', (data) => { // This event name might be custom, check server
+     socket.on('patient:update:profile:success', (data) => { 
          showNotification('Profile updated successfully!');
-         userProfile = data.profile; // Assuming server sends back the updated profile
-         renderMyProfile();
+         if (data && data.profile) {
+             userProfile = data.profile;
+             // Update global username if it changed
+             if (data.profile.username && data.profile.username !== currentUsername) {
+                 currentUsername = data.profile.username;
+                 localStorage.setItem('telemedicine_user', currentUsername);
+             }
+             renderMyProfile();
+         }
      });
 
-    socket.on('patient:update:profile:error', (data) => { // This event name might be custom, check server
+    socket.on('patient:update:profile:error', (data) => { 
         showNotification(data.message, true);
         socket.emit('patient:get:profile', { username: currentUsername });
     });
@@ -821,11 +811,11 @@ document.addEventListener('DOMContentLoaded', () => {
             socket.emit('patient:get:profile', { username: currentUsername });
          } else {
             showNotification(response.message || 'Failed to update profile picture.', true);
-             socket.emit('patient:get:profile', { username: currentUsername }); // Revert
+             socket.emit('patient:get:profile', { username: currentUsername }); 
          }
     });
 
-    socket.on('patient:password:changed', (response) => { // Changed from 'patient:change:password:response'
+    socket.on('patient:password:changed', (response) => { 
         const updateBtn = document.getElementById('confirm-password-change-btn');
         if (updateBtn) {
             updateBtn.disabled = false;
@@ -847,17 +837,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Server-sent Notifications ---
     socket.on('notification', (data) => {
         if(data && data.message) showNotification(data.message);
-        // ⭐ UPDATE: Use 'get:all:appointments'
         if (data.message.includes('appointment')) {
             socket.emit('get:all:appointments');
         }
     });
 
-    // Specific notification for reschedule requests
     socket.on('notification:reschedule-request', (data) => {
         console.log('[Patient][Socket] Received notification:reschedule-request:', data);
         if(data && data.message) showNotification(data.message);
-        fetchAllPatientData(); // Force fetch data to get 'Rescheduled-Pending' status
+        fetchAllPatientData(); 
     });
 
 
@@ -877,7 +865,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Chat History & Real-time Messages ---
     socket.on('patient:chat:history', (data) => {
         if (data.doctorUsername === selectedDoctorUsername) {
-            renderChatMessages(data.chatHistory || [], currentUsername); // Pass currentUsername
+            renderChatMessages(data.chatHistory || [], currentUsername); 
         }
     });
 
@@ -897,7 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const view = e.target.closest('a').dataset.view;
             if (view) showView(view);
-             const userMenu = document.getElementById('user-menu'); // Check this ID
+             const userMenu = document.getElementById('user-menu'); 
              if (userMenu && userMenu.classList.contains('show')) userMenu.classList.remove('show');
             if (sidebar && sidebar.classList.contains('is-open')) toggleSidebar();
         });
@@ -912,7 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', e => {
         // Handle placeholder button click
         if (e.target.id === 'request-appt-from-placeholder-1' || e.target.closest('[data-modal="appointment-modal"]')) {
-             if (e.target.closest('a') || e.target.closest('button')) { // Ensure it's a clickable element
+             if (e.target.closest('a') || e.target.closest('button')) { 
                 openModal('appointment-modal');
              }
         }
@@ -1027,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
             socket.emit('patient:accept-reschedule', { appointmentId: selectedAppointmentForReschedule.id });
             showNotification('Reschedule accepted.');
             closeModal(document.getElementById('reschedule-response-modal'));
-            selectedAppointmentForReschedule = null; // Clear selection
+            selectedAppointmentForReschedule = null; 
         }
     });
 
@@ -1039,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             showNotification('Reschedule rejected.', true);
             closeModal(document.getElementById('reschedule-response-modal'));
-            selectedAppointmentForReschedule = null; // Clear selection
+            selectedAppointmentForReschedule = null; 
         }
     });
 
@@ -1054,9 +1042,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-profile-form')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const updatedProfile = {
-            username: currentUsername, // Username is read-only, send for identification
+            username: document.getElementById('profile-username').value, // Now sends the new username
             email: document.getElementById('profile-email').value,
             phone: document.getElementById('profile-phone').value,
+            originalUsername: currentUsername // To identify the user if username changes (depends on backend logic)
         };
         if (!updatedProfile.email) {
             showNotification('Email cannot be empty.', true);
@@ -1099,7 +1088,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const messageInput = document.getElementById('patient-message-input');
         const message = messageInput.value.trim();
-        // ⭐ UPDATE: Check for selectedConversationAppointmentId
         if (message && selectedDoctorUsername && selectedConversationAppointmentId) {
             const tempMessage = { senderUsername: currentUsername, message, timestamp: new Date().toISOString() };
             appendMessageToChat(tempMessage, currentUsername);
@@ -1108,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 receiverUsername: selectedDoctorUsername,
                 message: message,
                 senderFullName: currentUserFullName,
-                appointmentId: selectedConversationAppointmentId // ⭐ UPDATE: Send the ID
+                appointmentId: selectedConversationAppointmentId 
             });
             messageInput.value = '';
             messageInput.focus();
@@ -1135,7 +1123,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 reader.readAsDataURL(file);
             }
-            event.target.value = null; // Reset file input
+            event.target.value = null; 
         });
     }
 
@@ -1161,5 +1149,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Setup Calls ---
     setTomorrowAsMinDate('appointment-date');
     setTomorrowAsMinDate('propose-date');
-    // Initial fetch is now handled after socket connect + user:online
 });
