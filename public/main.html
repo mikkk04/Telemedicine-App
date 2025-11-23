@@ -1,443 +1,455 @@
-<style>
-    /* --- GLOBAL STYLES (Applies to both Mobile and Desktop) --- */
-    html, body {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #000;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Teleconsultation</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/desktop.css" media="(min-width: 769px)">
+    <style>
+        /* --- GLOBAL STYLES (Applies to both Mobile and Desktop) --- */
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scroll bounce */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000; /* Dark background default */
+        }
 
-    /* Modal Styles (Global) */
-    .notification-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-    .notification-modal-content {
-        background-color: #fff;
-        padding: 24px 32px;
-        border-radius: 12px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        max-width: 90%;
-        width: 350px;
-    }
-    .notification-modal-content h2 {
-        margin-top: 0;
-        color: #333;
-        font-size: 20px;
-    }
-    .notification-modal-content button {
-        background-color: #5C6BC0;
-        color: white;
-        border: none;
-        padding: 10px 24px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: 600;
-        margin-top: 16px;
-        transition: background-color 0.2s;
-    }
-    .notification-modal-content button:hover {
-        background-color: #3F51B5;
-    }
-
-    /* --- CAMERA POV & PREVIEW SPECIFIC STYLES --- */
-    
-    /* Camera POV Container */
-    .camera-pov-interface {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #000;
-        z-index: 300;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Camera Header (Back button, Switch, Indicator) */
-    .camera-pov-header {
-        position: absolute;
-        top: 20px;
-        left: 0;
-        width: 100%;
-        padding: 0 20px;
-        box-sizing: border-box;
-        z-index: 10;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    /* Video Wrapper */
-    .camera-pov-video-wrapper {
-        flex: 1;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        background: #000;
-    }
-    #cameraPovVideo {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    /* Camera Bottom Controls */
-    .camera-pov-controls {
-        position: absolute;
-        bottom: 40px;
-        left: 0;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10;
-        pointer-events: none; /* Let clicks pass through empty areas */
-    }
-
-    /* Circular Utility Buttons (Back, Switch) */
-    .cam-overlay-btn {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(4px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        pointer-events: auto;
-    }
-    .cam-overlay-btn:active {
-        transform: scale(0.95);
-        background: rgba(0, 0, 0, 0.6);
-    }
-    .cam-overlay-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    /* Recording Indicator */
-    .recording-indicator {
-        background: rgba(255, 0, 0, 0.2);
-        backdrop-filter: blur(4px);
-        color: #ff4444;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: bold;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        border: 1px solid rgba(255, 0, 0, 0.3);
-    }
-    .recording-dot {
-        font-size: 0.7rem;
-        animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.4; }
-        100% { opacity: 1; }
-    }
-
-    /* Main Shutter Button */
-    .cam-shutter-btn {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        border: 4px solid white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        pointer-events: auto;
-        transition: transform 0.1s;
-    }
-    .cam-shutter-inner {
-        width: 54px;
-        height: 54px;
-        border-radius: 50%;
-        background: white;
-        transition: all 0.2s;
-    }
-    /* Style changes when recording */
-    .cam-shutter-btn.recording .cam-shutter-inner {
-        background: #ff4444;
-        border-radius: 8px;
-        width: 30px;
-        height: 30px;
-    }
-    .cam-shutter-btn:active {
-        transform: scale(0.95);
-    }
-
-    /* Shot Preview Interface */
-    .shot-preview-interface {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #000;
-        z-index: 350;
-        flex-direction: column;
-    }
-    .shot-preview-image-wrapper {
-        flex: 1;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        background: #111;
-    }
-    .preview-controls {
-        padding: 30px 20px; /* More vertical padding */
-        background: rgba(0, 0, 0, 0.8);
-        display: flex;
-        justify-content: center;
-        gap: 30px; /* More space between buttons */
-        align-items: center;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .action-btn {
-        padding: 15px 40px; /* Larger padding for pill shape */
-        border: none;
-        border-radius: 50px; /* Rounder corners */
-        font-size: 1.1rem; /* Slightly larger text */
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.1s, background-color 0.2s;
-        white-space: nowrap;
-        min-width: 100px;
-        flex-shrink: 0;
-    }
-    .action-btn:active {
-        transform: scale(0.95);
-    }
-    .retake-btn {
-        background: rgba(255, 255, 255, 0.2); /* Semi-transparent white for Retake */
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-     .retake-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-    .send-btn {
-        background: #4CAF50;
-        color: white;
-    }
-     .send-btn:hover {
-        background: #43A047;
-    }
-
-
-    /* --- MOBILE ONLY STYLES (Max-width 768px) --- */
-    @media (max-width: 768px) {
-        
-        /* Base Call Interface Layout for Mobile */
-        #call-interface {
-            position: absolute;
+        /* Modal Styles (Global) */
+        .notification-modal-overlay {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
             display: flex;
-            flex-direction: column;
-            background-color: #000;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .notification-modal-content {
+            background-color: #fff;
+            padding: 24px 32px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-width: 90%;
+            width: 350px;
+        }
+        .notification-modal-content h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        .notification-modal-content button {
+            background-color: #5C6BC0;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 16px;
+            transition: background-color 0.2s;
+        }
+        .notification-modal-content button:hover {
+            background-color: #3F51B5;
         }
 
-        /* Header: Transparent overlay on mobile */
-        #call-header {
-            flex: 0 0 auto;
+        /* --- CAMERA POV & PREVIEW SPECIFIC STYLES --- */
+        
+        /* Camera POV Container */
+        .camera-pov-interface {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Camera Header (Back button, Switch, Indicator) */
+        .camera-pov-header {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 10;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 15px;
-            background: rgba(0, 0, 0, 0.5);
-            color: #fff;
-            z-index: 50;
-            font-size: 0.9rem;
         }
 
-        /* Main Body: Flex container */
-        #call-body-layout {
+        /* Video Wrapper */
+        .camera-pov-video-wrapper {
             flex: 1;
+            width: 100%;
+            height: 100%;
             display: flex;
-            position: relative;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Main Content (Video Area) */
-        #main-content {
-            flex: 1;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-        }
-
-        #mainVideoContainer {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            position: relative;
             background: #000;
         }
-
-        #mainVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Fills mobile screen */
-            display: block;
-        }
-
-        /* Mini Video Mobile Positioning */
-        #miniVideoContainer {
-            position: absolute;
-            top: 60px; /* Below header */
-            right: 15px;
-            width: 90px;
-            height: 120px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.3);
-            z-index: 60;
-            background: #000;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        #miniVideo {
+        #cameraPovVideo {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
-        /* Controls: Floating Overlay at Bottom Center */
-        #control-tab {
+        /* Camera Bottom Controls */
+        .camera-pov-controls {
             position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 40px;
+            left: 0;
+            width: 100%;
             display: flex;
-            gap: 12px;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(8px);
-            border-radius: 30px;
-            z-index: 100;
-            width: auto;
-            max-width: 90%;
             justify-content: center;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none; /* Let clicks pass through empty areas */
         }
 
-        #control-tab button {
-            width: 42px;
-            height: 42px;
+        /* Circular Utility Buttons (Back, Switch) */
+        .cam-overlay-btn {
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
-            border: none;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            background: rgba(0,0,0,0.6);
-            font-size: 18px;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            pointer-events: auto;
         }
-        #control-tab button:hover {
-            transform: scale(1.1);
+        .cam-overlay-btn:active {
+            transform: scale(0.95);
+            background: rgba(0, 0, 0, 0.6);
         }
-        #control-tab button.end-call-button {
-            background: #ff4444;
-        }
-
-        /* ⭐ CHAT MOBILE FIX: FULL SCREEN OVERLAY (Positioning) */
-        #chat-container {
-            display: none; /* Controlled by JS */
-            position: fixed !important; 
-            top: 0 !important;
-            left: 0 !important; 
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100% !important;
-            height: 100vh !important; 
-            background: #f5f5f5 !important;
-            flex-direction: column;
-            z-index: 9999 !important;
-            transform: none !important; 
-            margin: 0 !important;
+        .cam-overlay-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        /* Force display flex when active on mobile (based on JS class toggle) */
-        #chat-container[style*="display: block"], 
-        #chat-container[style*="display: flex"],
-        #chat-container.chat-open {
-            display: flex !important;
-        }
-
-        #chat-header {
-            padding: 15px;
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        #chat-controls {
-            padding: 10px;
-            background: #fff;
-            border-top: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .chat-input {
-            flex: 1;
-            padding: 10px;
+        /* Recording Indicator */
+        .recording-indicator {
+            background: rgba(255, 0, 0, 0.2);
+            backdrop-filter: blur(4px);
+            color: #ff4444;
+            padding: 6px 14px;
             border-radius: 20px;
-            border: 1px solid #ccc;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
         }
-    }
-</style>
+        .recording-dot {
+            font-size: 0.7rem;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* Main Shutter Button */
+        .cam-shutter-btn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.1s;
+        }
+        .cam-shutter-inner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: white;
+            transition: all 0.2s;
+        }
+        /* Style changes when recording */
+        .cam-shutter-btn.recording .cam-shutter-inner {
+            background: #ff4444;
+            border-radius: 8px;
+            width: 30px;
+            height: 30px;
+        }
+        .cam-shutter-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Shot Preview Interface */
+        .shot-preview-interface {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 350;
+            flex-direction: column;
+        }
+        .shot-preview-image-wrapper {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #111;
+        }
+        .preview-controls {
+            padding: 30px 20px; /* More vertical padding */
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            gap: 30px; /* More space between buttons */
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .action-btn {
+            padding: 15px 40px; /* Larger padding for pill shape */
+            border: none;
+            border-radius: 50px; /* Rounder corners */
+            font-size: 1.1rem; /* Slightly larger text */
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            white-space: nowrap;
+            min-width: 100px;
+            flex-shrink: 0;
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        .retake-btn {
+            background: rgba(255, 255, 255, 0.2); /* Semi-transparent white for Retake */
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+         .retake-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .send-btn {
+            background: #4CAF50;
+            color: white;
+        }
+         .send-btn:hover {
+            background: #43A047;
+        }
+
+
+        /* --- MOBILE ONLY STYLES (Max-width 768px) --- */
+        @media (max-width: 768px) {
+            
+            /* Base Call Interface Layout for Mobile */
+            #call-interface {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                background-color: #000;
+            }
+
+            /* Header: Transparent overlay on mobile */
+            #call-header {
+                flex: 0 0 auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 15px;
+                background: rgba(0, 0, 0, 0.5);
+                color: #fff;
+                z-index: 50;
+                font-size: 0.9rem;
+            }
+
+            /* Main Body: Flex container */
+            #call-body-layout {
+                flex: 1;
+                display: flex;
+                position: relative;
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+            }
+
+            /* Main Content (Video Area) */
+            #main-content {
+                flex: 1;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                height: 100%;
+            }
+
+            #mainVideoContainer {
+                flex: 1;
+                width: 100%;
+                height: 100%;
+                position: relative;
+                background: #000;
+            }
+
+            #mainVideo {
+                width: 100%;
+                height: 100%;
+                object-fit: cover; /* Fills mobile screen */
+                display: block;
+            }
+
+            /* Mini Video Mobile Positioning */
+            #miniVideoContainer {
+                position: absolute;
+                top: 60px; /* Below header */
+                right: 15px;
+                width: 90px;
+                height: 120px;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 2px solid rgba(255,255,255,0.3);
+                z-index: 60;
+                background: #000;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            }
+            #miniVideo {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            /* Controls: Floating Overlay at Bottom Center */
+            #control-tab {
+                position: absolute;
+                bottom: 25px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 12px;
+                padding: 10px 20px;
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(8px);
+                border-radius: 30px;
+                z-index: 100;
+                width: auto;
+                max-width: 90%;
+                justify-content: center;
+            }
+
+            #control-tab button {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                border: none;
+                color: white;
+                background: rgba(0,0,0,0.6);
+                font-size: 18px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            #control-tab button:hover {
+                transform: scale(1.1);
+            }
+            #control-tab button.end-call-button {
+                background: #ff4444;
+            }
+
+            /* ⭐ CHAT MOBILE FIX: FULL SCREEN OVERLAY (Positioning and Flex Layout) */
+            #chat-container {
+                display: none; /* Controlled by JS */
+                position: fixed !important; 
+                top: 0 !important;
+                left: 0 !important; 
+                right: 0 !important;
+                /* bottom: 0 !important; - REMOVED, relying on height: 100vh */
+                width: 100% !important;
+                height: 100vh !important; /* Use viewport height for proper full-screen */
+                background: #f5f5f5 !important;
+                flex-direction: column; /* Main change: Stack items vertically */
+                z-index: 9999 !important;
+                transform: none !important; 
+                margin: 0 !important;
+                box-sizing: border-box; /* Ensure padding/border is included in height calculation */
+            }
+
+            /* Force display flex when active on mobile (based on JS class toggle) */
+            #chat-container[style*="display: block"], 
+            #chat-container[style*="display: flex"],
+            #chat-container.chat-open {
+                display: flex !important;
+            }
+
+            #chat-header {
+                flex-shrink: 0; /* Important: Header should not shrink */
+                padding: 15px;
+                background: #fff;
+                border-bottom: 1px solid #ddd;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            #chat-box {
+                flex: 1; /* Important: Takes up all available vertical space */
+                overflow-y: auto; /* Allows scrolling of messages */
+                padding: 10px;
+            }
+
+            #chat-controls {
+                flex-shrink: 0; /* Important: Controls should not shrink or overflow */
+                padding: 10px;
+                background: #fff;
+                border-top: 1px solid #ddd;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .chat-input {
+                flex: 1;
+                padding: 10px;
+                border-radius: 20px;
+                border: 1px solid #ccc;
+            }
+        }
+    </style>
 </head>
 <body>
 
