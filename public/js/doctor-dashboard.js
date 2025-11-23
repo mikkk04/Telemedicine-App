@@ -397,7 +397,24 @@ function getLoggedInUser() { return { username: localStorage.getItem('telemedici
 function showView(viewName) { const views = ['dashboard', 'appointments', 'profile', 'messages', 'calendar']; views.forEach(view => { const el = document.getElementById(`${view}-view`); if (el) el.classList.add('hidden'); }); const activeView = document.getElementById(`${viewName}-view`); if (activeView) activeView.classList.remove('hidden'); document.querySelectorAll('.sidebar-nav a').forEach(link => link.classList.remove('active')); const activeLink = document.querySelector(`.nav-link[data-view="${viewName}"]`); if (activeLink) activeLink.classList.add('active'); if (viewName === 'appointments') renderAllAppointments(); else if (viewName === 'profile') renderProfile(); else if (viewName === 'messages') renderMessagesView(); else if (viewName === 'calendar') renderCalendar(); }
 function updateNotificationBadge(count) { const badge = document.getElementById('notification-badge'); if (badge) { if (count > 0) { badge.textContent = count; badge.classList.remove('hidden'); badge.classList.add('flex'); } else { badge.classList.add('hidden'); badge.classList.remove('flex'); } } }
 function hasConflict(appointmentDate, appointmentTime) { const targetDateStr = appointmentDate.split('T')[0]; return allAppointments.some(app => app.doctorName === currentUsername && app.status === 'Accepted' && app.appointmentDate.split('T')[0] === targetDateStr && app.appointmentTime === appointmentTime); }
-function calculateAge(birthdate) { if (!birthdate) return 'N/A'; try { const today = new Date(); const birthDate = new Date(birthdate); if (isNaN(birthDate.getTime())) return 'N/A'; let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--; return age; } catch (e) { console.error("Error calculating age:", e); return 'N/A'; } }
+
+// --- AGE CALCULATION FIX ---
+function calculateAge(birthdate) { 
+    if (!birthdate) return 'N/A'; 
+    try { 
+        const today = new Date(); 
+        const birthDate = new Date(birthdate); 
+        if (isNaN(birthDate.getTime())) return 'N/A'; 
+        let age = today.getFullYear() - birthDate.getFullYear(); 
+        const m = today.getMonth() - birthDate.getMonth(); 
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--; 
+        return Math.max(0, age); // Ensure age is never negative
+    } catch (e) { 
+        console.error("Error calculating age:", e); 
+        return 'N/A'; 
+    } 
+}
+
 function copyToken(token, event) { 
     event.preventDefault(); 
     if (!token || token === '#') { // Prevent copying placeholder
@@ -612,7 +629,11 @@ function renderProfile() {
 
     updateProfilePicDisplay(doctorProfile); // Update picture first
     
-    document.getElementById('profile-name').textContent = staticFullName || doctorProfile.fullName || 'N/A'; // Use staticFullName as primary
+    // NAME FIX: Use fullName if available, otherwise fallback to username
+    const nameToDisplay = doctorProfile.fullName || staticFullName || doctorProfile.username || 'Doctor'; 
+    document.getElementById('profile-name').textContent = nameToDisplay;
+    
+    // AGE FIX: Uses the new safe calculation
     document.getElementById('profile-age').textContent = doctorProfile.dob ? `${calculateAge(doctorProfile.dob)} years old` : 'N/A';
     document.getElementById('profile-place').textContent = doctorProfile.address || 'N/A';
     document.getElementById('profile-phone').textContent = doctorProfile.phone || 'N/A';
@@ -628,40 +649,49 @@ function renderProfile() {
 
 function updateProfilePicDisplay(profile) {
     const createPicElement = (src, displayName) => { 
-        // Validation: Check for null/undefined strings and empty values
-        let validSrc = src;
-        if (!validSrc || validSrc === 'null' || validSrc === 'undefined') {
-            validSrc = null;
+        // --- SAFETY FIRST LOGIC ---
+        
+        // 1. Check if the database value is garbage (null string, empty, undefined)
+        let isValidDBImage = src && src !== 'null' && src !== 'undefined' && src.trim() !== '';
+        
+        // 2. Construct the Fallback URL (UI Avatars)
+        const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName ? displayName.charAt(0) : 'D')}&background=4C7AFB&color=fff&bold=true&size=128`;
+        
+        // 3. If DB image is garbage, use Fallback IMMEDIATELY. Don't even try to load garbage.
+        if (!isValidDBImage) {
+            console.log("Profile picture is missing or invalid in DB. Using avatar.");
+            const img = document.createElement('img');
+            img.src = fallbackUrl;
+            img.alt = "Profile Avatar";
+            return img;
         }
 
-        // Fix relative paths: If it's a file path like 'uploads/img.png', ensure it starts with '/'
-        // We assume valid sources are absolute HTTP, data URIs, or absolute paths
-        if (validSrc && !validSrc.startsWith('http') && !validSrc.startsWith('data:') && !validSrc.startsWith('/')) {
+        // 4. If DB image looks real, try to clean up the path
+        let validSrc = src;
+        // Fix relative paths: If it's 'uploads/img.png', make it '/uploads/img.png'
+        if (!validSrc.startsWith('http') && !validSrc.startsWith('data:') && !validSrc.startsWith('/')) {
              validSrc = '/' + validSrc;
         }
 
-        const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName ? displayName.charAt(0) : 'D')}&background=4C7AFB&color=fff&bold=true&size=128`;
-        
+        // 5. Try loading the real image
         const picElement = document.createElement('img');
+        picElement.src = validSrc;
+        picElement.alt = `${displayName || 'Profile'}'s profile picture`;
         
-        // Setup error handler BEFORE setting src to catch immediate errors
+        // 6. Final Safety Net: If the browser tries to load validSrc and gets a 404, switch to avatar
         picElement.onerror = (e) => {
-            console.warn("Profile image failed to load, switching to fallback.");
-            e.target.onerror = null; // Remove handler to prevent infinite loop
-            // Only swap if we aren't already using the fallback
+            console.warn("Profile image failed to load (404), switching to fallback.");
+            e.target.onerror = null; // Prevent infinite loop
             if (e.target.src !== fallbackUrl) {
                 e.target.src = fallbackUrl;
             }
         };
-
-        // Set src (try validSrc first, else fallback)
-        picElement.src = validSrc || fallbackUrl;
-        picElement.alt = `${displayName || 'Profile'}'s profile picture`;
         
         return picElement; 
     };
     
-    const displayName = staticFullName || profile?.fullName || profile?.username || ''; // Use staticFullName first
+    // Use staticFullName or username for the Avatar letter
+    const displayName = staticFullName || profile?.fullName || profile?.username || 'User'; 
     
     const profilePicContainer = document.getElementById('profile-pic-container');
     if (profilePicContainer) { 
