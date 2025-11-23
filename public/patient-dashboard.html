@@ -148,27 +148,41 @@
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
 
-            /* Container Logic */
+            /* ⭐ DEFAULT STATE (Dashboard, Profile, etc.) 
+               Allows scrolling naturally.
+            */
             .main-content-wrapper { 
                 padding-top: 7.5rem; 
                 padding-left: 1rem; 
                 padding-right: 1rem;
-                padding-bottom: 0 !important; 
+                padding-bottom: 2rem; 
                 
-                /* Fallback for older devices (iPhone 4) */
-                height: 100vh; 
+                height: 100vh;
                 height: 100dvh; 
-                
-                overflow: hidden; /* Stop the wrapper from scrolling */
+                overflow-y: auto; /* Scrollable by default */
+                -webkit-overflow-scrolling: touch;
+                display: block; 
+            }
+
+            /* ⭐ ACTIVE MESSAGES STATE
+               Locks scrolling so chat fits on screen 
+            */
+            body.messages-active .main-content-wrapper {
+                overflow: hidden !important; /* Lock scroll */
                 display: flex;
                 flex-direction: column;
+                padding-bottom: 0 !important;
             }
             
             .main-content {
-                flex: 1; /* Fill remaining space */
+                min-height: auto;
+            }
+
+            body.messages-active .main-content {
+                flex: 1;
                 display: flex;
                 flex-direction: column;
-                overflow: hidden; /* Prevent internal scroll */
+                overflow: hidden;
                 padding-bottom: 0 !important;
             }
 
@@ -178,12 +192,12 @@
                 padding: 1.5rem !important;
             }
 
-            /* ⭐ MESSAGE LAYOUT FIXES FOR IPHONE 4 ⭐ */
+            /* ⭐ MESSAGE LAYOUT FIXES ⭐ */
             #messages-view {
                 height: 100%;
                 display: flex;
                 flex-direction: column;
-                overflow: hidden; /* Contain children */
+                overflow: hidden; 
             }
 
             .messages-layout {
@@ -191,10 +205,9 @@
                 flex-direction: column;
                 height: 100%;
                 gap: 0.5rem;
-                overflow: hidden; /* Contain children */
+                overflow: hidden; 
             }
 
-            /* 1. Sidebar (Doctor List): Fixed small height */
             .messages-sidebar {
                 flex: 0 0 135px; /* Default mobile height */
                 height: 135px !important;
@@ -202,30 +215,26 @@
                 margin-bottom: 0;
             }
 
-            /* 2. Chat Content Container */
             .messages-content {
                 flex: 1; /* Grow to fill remaining space */
                 display: flex;
                 flex-direction: column;
-                min-height: 0; /* CRITICAL for flex child scrolling */
+                min-height: 0; 
                 height: 100% !important;
-                overflow: hidden; /* Ensure nothing spills out */
+                overflow: hidden; 
                 
                 background: transparent !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
             }
 
-            /* 3. The Actual Message List (Bubbles) */
             .message-list-container {
-                /* flex: 1 1 0 tells it to grow, shrink, but start calculation at 0 height. */
                 flex: 1 1 0; 
-                
                 overflow-y: auto !important;
                 -webkit-overflow-scrolling: touch;
                 height: auto !important;
                 max-height: none !important;
-                padding-bottom: 1.5rem; /* Extra padding so text isn't behind input */
+                padding-bottom: 1.5rem; 
                 
                 border: 1px solid rgba(0,0,0,0.05); 
                 border-radius: 12px;
@@ -236,31 +245,27 @@
                 max-width: 85%; 
             }
 
-            /* 4. Input Area - Strong Z-Index to prevent overlap issues */
             .message-input-form-container {
-                flex: 0 0 auto; /* Do not grow or shrink */
+                flex: 0 0 auto; 
                 background: var(--bg-element);
-                z-index: 50; /* Ensure it sits on top */
+                z-index: 50; 
                 position: relative;
                 padding-bottom: 1rem;
-                box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.1); /* Separator shadow */
+                box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.1); 
             }
         }
 
         /* ⭐ IPHONE 4 / SMALL SCREEN SPECIFIC OVERRIDES (Height < 600px) ⭐ */
         @media (max-width: 992px) and (max-height: 600px) {
-            /* Shrink top header padding */
-            .main-content-wrapper {
-                padding-top: 65px; /* Reduce top padding */
+            body.messages-active .main-content-wrapper {
+                padding-top: 65px; 
             }
             
-            /* Shrink Doctor List to give more space to chat */
             .messages-sidebar {
                 flex: 0 0 100px;
                 height: 100px !important;
             }
             
-            /* Make header smaller */
             .header {
                 padding: 0.5rem;
             }
@@ -635,26 +640,26 @@
                                  <option value="10:30:00">10:30 AM</option>
                                  <option value="11:00:00">11:00 AM</option>
                                  <option value="11:30:00">11:30 AM</option>
-                             </optgroup>
-                             <optgroup label="Afternoon">
-                                 <option value="13:00:00">1:00 PM</option>
-                                 <option value="13:30:00">1:30 PM</option>
-                                 <option value="14:00:00">2:00 PM</option>
-                                 <option value="14:30:00">2:30 PM</option>
-                                 <option value="15:00:00">3:00 PM</option>
-                                 <option value="15:30:00">3:30 PM</option>
-                                 <option value="16:00:00">4:00 PM</option>
-                                 <option value="16:30:00">4:30 PM</option>
-                             </optgroup>
-                         </select>
-                     </div>
-                     <div class="modal-footer flex justify-end gap-3 mt-8">
-                         <button type="submit" class="action-btn primary">Submit Proposal</button>
-                     </div>
-                 </form>
-             </div>
-         </div>
-     </div>
+                            </optgroup>
+                            <optgroup label="Afternoon">
+                                <option value="13:00:00">1:00 PM</option>
+                                <option value="13:30:00">1:30 PM</option>
+                                <option value="14:00:00">2:00 PM</option>
+                                <option value="14:30:00">2:30 PM</option>
+                                <option value="15:00:00">3:00 PM</option>
+                                <option value="15:30:00">3:30 PM</option>
+                                <option value="16:00:00">4:00 PM</option>
+                                <option value="16:30:00">4:30 PM</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="modal-footer flex justify-end gap-3 mt-8">
+                        <button type="submit" class="action-btn primary">Submit Proposal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="help-modal">
         <div class="modal-container rounded-2xl p-8 shadow-2xl w-[90%] max-w-[520px]">
@@ -861,6 +866,38 @@
                     currentTheme = 'dark';
                 }
                 applyTheme(currentTheme); // Apply initial theme
+            }
+        });
+
+        // ⭐ NEW: Handle Mobile Layout Switching
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const body = document.body;
+
+            function handleViewChange(viewName) {
+                // If viewing messages, lock the body scroll and switch to Flex layout
+                if (viewName === 'messages') {
+                    body.classList.add('messages-active');
+                } else {
+                    body.classList.remove('messages-active');
+                }
+            }
+
+            // Attach listener to all navigation links
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    // Get the view name from the clicked link
+                    const view = link.getAttribute('data-view');
+                    if (view) {
+                        handleViewChange(view);
+                    }
+                });
+            });
+
+            // Check if there is already an active link on load
+            const activeLink = document.querySelector('.nav-link.active');
+            if (activeLink) {
+                handleViewChange(activeLink.getAttribute('data-view'));
             }
         });
     </script>
