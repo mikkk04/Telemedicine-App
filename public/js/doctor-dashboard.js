@@ -207,7 +207,7 @@ function showCallDetailsModal(appointment) {
     createJoinBtn.dataset.appointmentId = appointment.id;
     finishBtn.dataset.appointmentId = appointment.id;
     
-    // ⭐ FIX APPLIED: Ensure QR code generation and link display logic is executed on every modal open
+    // --- FIX APPLIED: Link and QR Persistence ---
     if (appointment.authToken) {
         console.log('[showCallDetailsModal] Appointment HAS authToken:', appointment.authToken);
         createJoinBtn.textContent = 'Join Call';
@@ -223,9 +223,8 @@ function showCallDetailsModal(appointment) {
         if (typeof QRCode === 'undefined') {
              console.error('[showCallDetailsModal] QRCode library is not loaded!');
              qrCodeEl.alt = 'QR Code library not loaded.';
-             // Don't return, link should still work
         } else {
-             // Use a small delay for safety and ensure QR library is ready, although usually unnecessary
+            // Ensure QR generation happens when modal opens if token exists
             setTimeout(() => {
                 QRCode.toDataURL(appointment.authToken, { width: 200, margin: 2 }, (err, url) => {
                     if (err) {
@@ -238,16 +237,18 @@ function showCallDetailsModal(appointment) {
                         qrCodeEl.alt = 'Video call QR code';
                     }
                 });
-            }, 50); // Small delay
+            }, 50); 
         }
     } else {
         console.log('[showCallDetailsModal] Appointment does NOT have authToken yet.');
         createJoinBtn.textContent = 'Create Call';
+        // Reset to placeholder text/link state, which matches the image provided by the user
         callLinkEl.href = '#';
         callLinkEl.textContent = 'Link will appear here after creating the call.';
         qrCodeEl.src = ''; 
         qrCodeEl.alt = 'QR code will appear here after creating the call.';
     }
+    // --- END FIX APPLIED ---
 
     createJoinBtn.disabled = false;
     showModal('callDetailsModal');
@@ -1309,43 +1310,38 @@ document.addEventListener('click', (e) => {
         }
 
         // Case 2: Token does not exist. Create it.
+        // This is the action that now generates the link and updates the UI instantly.
         console.log('[Create/Join Call] AuthToken does NOT exist. Requesting server to create room...');
         target.disabled = true;
-        target.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating room...';
+        target.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating link...'; // Changed text to reflect link creation, not just room start
 
         socket.emit('doctor:create-room', { appointmentId: currentAppointmentId, doctorName: currentUsername }, (response) => {
             console.log('[Create/Join Call] Received response from server:', JSON.stringify(response, null, 2));
             
             if (response && response.success && response.redirectUrl) {
                 console.log('[Create/Join Call] Room creation SUCCESS. URL:', response.redirectUrl);
+                
                 // 1. Update local appointment object
                 appointment.authToken = response.redirectUrl; 
-                // 2. Populate modal elements
-                callLinkEl.href = response.redirectUrl;
-                callLinkEl.textContent = response.redirectUrl;
-                // 3. Generate QR Code
-                console.log('[Create/Join Call] Attempting to generate QR code for new URL...');
-                if (typeof QRCode === 'undefined') {
-                     console.error('[Create/Join Call] QRCode library is not loaded!');
-                     qrCodeEl.alt = 'QR Code library not loaded.';
-                } else {
-                    QRCode.toDataURL(response.redirectUrl, { width: 200, margin: 2 }, (err, url) => {
-                        if (err) { console.error('[Create/Join Call] Failed to generate QR code:', err); qrCodeEl.alt = 'Failed to load QR code.'; } 
-                        else { console.log('[Create/Join Call] QR code generated successfully.'); qrCodeEl.src = url; qrCodeEl.alt = 'Video call QR code'; }
-                    });
-                }
-                // 4. Update button text
-                target.textContent = 'Join Call';
+                
+                // 2. Refresh the modal view, which will now show the link and QR code,
+                // and change the button to 'Join Call'.
+                // Hiding and showing the modal forces the render logic in showCallDetailsModal to re-run.
+                // We use showCallDetailsModal directly, which handles UI update based on new authToken.
+                hideModal('callDetailsModal');
+                showCallDetailsModal(appointment);
+                
                 target.disabled = false;
-                // 5. Open call for doctor
-                console.log('[Create/Join Call] Opening call window...');
-                window.open(response.redirectUrl, '_blank'); 
-                // 6. Refetch appointments
+                
+                // Optional: Automatically open call for doctor after creation, or rely on them hitting "Join Call"
+                // window.open(response.redirectUrl, '_blank'); 
+                
+                // 3. Refetch appointments (server will likely trigger appointments:update anyway)
                 console.log('[Create/Join Call] Emitting get:all:appointments to sync state.');
                 socket.emit('get:all:appointments'); 
             } else {
                 console.error('[Create/Join Call] Room creation FAILED. Server response:', response);
-                alert(`Failed to create/join room: ${response?.message || 'Unknown server error'}`);
+                alert(`Failed to create link: ${response?.message || 'Unknown server error'}`);
                 target.disabled = false;
                 target.textContent = 'Create Call'; // Reset button text
             }
