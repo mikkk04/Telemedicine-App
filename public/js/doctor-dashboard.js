@@ -184,27 +184,39 @@ function showRescheduleModal(appointment) {
  * @param {object} appointment The appointment object.
  */
 // --- ⭐ FIX: BUTTON STATE LOGIC ---
+// --- ⭐ FIX: Populates Subject & Date/Time correctly ---
 function showCallDetailsModal(appointment, serverRedirectUrl = null) {
     const callPatientNameEl = document.getElementById('callPatientName');
+    const callSubjectEl = document.getElementById('callSubject'); // Added back
+    const callDateTimeEl = document.getElementById('callDateTime'); // Added back
     const createJoinBtn = document.getElementById('createJoinCallBtn');
     const callLinkEl = document.getElementById('callLinkText');
     const qrCodeEl = document.getElementById('qrCodeImage');
 
+    // 1. Populate Text Details
     callPatientNameEl.textContent = appointment.patientFullName || appointment.patientName;
+    callSubjectEl.textContent = appointment.subject || 'N/A';
+    
+    // Format Date & Time safely
+    const dateStr = appointment.appointmentDate.split('T')[0];
+    const dateObj = new Date(dateStr + 'T00:00:00');
+    callDateTimeEl.textContent = `${dateObj.toLocaleDateString()} at ${appointment.appointmentTime}`;
+
+    // Set Button IDs
     createJoinBtn.dataset.appointmentId = appointment.id;
     document.getElementById('finishAppointmentBtn').dataset.appointmentId = appointment.id;
 
-    // --- A. URL Construction (For Link & QR) ---
+    // --- URL Logic (Kept from previous fix) ---
     let fullUrl = '#';
+
+    // Construct absolute URL
     if (serverRedirectUrl) {
-        // If we just created it, use the server's URL
         fullUrl = serverRedirectUrl.startsWith('http') ? serverRedirectUrl : `${window.location.origin}${serverRedirectUrl}`;
     } else if (appointment.authToken) {
-        // If loading from existing data
         fullUrl = `${window.location.origin}/call/${appointment.id}?token=${appointment.authToken}`;
     }
 
-    // --- B. Display QR & Link (Always show if URL exists) ---
+    // Update Link & QR
     if (fullUrl !== '#') {
         callLinkEl.href = fullUrl;
         callLinkEl.textContent = fullUrl;
@@ -222,25 +234,19 @@ function showCallDetailsModal(appointment, serverRedirectUrl = null) {
         qrCodeEl.src = '';
     }
 
-    // --- C. Button State Logic ---
-    // Condition: Is the room active? 
-    // Yes if: Database says roomCreated=1 OR we just got a redirect URL from creating it.
-    const isRoomActive = appointment.roomCreated || serverRedirectUrl;
-
-    if (isRoomActive) {
-        // State: JOIN
+    // Update Button State
+    if (appointment.roomCreated || serverRedirectUrl) {
         createJoinBtn.textContent = 'Join Call';
         createJoinBtn.disabled = false;
         createJoinBtn.onclick = (e) => {
             e.preventDefault(); 
             e.stopPropagation();
-            window.open(fullUrl, '_blank'); // Open the call
+            window.open(fullUrl, '_blank'); 
         };
     } else {
-        // State: CREATE
         createJoinBtn.textContent = 'Create Call';
         createJoinBtn.disabled = false;
-        createJoinBtn.onclick = null; // Handled by the global click listener (see below)
+        createJoinBtn.onclick = null; 
     }
 
     showModal('callDetailsModal');
