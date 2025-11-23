@@ -225,35 +225,49 @@
             background: #111;
         }
         .preview-controls {
-            padding: 20px;
+            padding: 30px 20px; /* More vertical padding */
             background: rgba(0, 0, 0, 0.8);
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
+            gap: 30px; /* More space between buttons */
             align-items: center;
+            width: 100%;
+            box-sizing: border-box;
         }
+        /* UPDATED ACTION BUTTON STYLES (No Icons) */
         .action-btn {
-            padding: 12px 24px;
+            padding: 15px 40px; /* Larger padding for pill shape */
             border: none;
-            border-radius: 30px;
-            font-size: 1rem;
+            border-radius: 50px; /* Rounder corners */
+            font-size: 1.1rem; /* Slightly larger text */
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            /* gap: 10px; Removed gap since no icon */
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: transform 0.1s, background-color 0.2s;
+            white-space: nowrap;
+            min-width: 100px;
+            flex-shrink: 0;
         }
         .action-btn:active {
             transform: scale(0.95);
         }
         .retake-btn {
-            background: #333;
+            background: rgba(255, 255, 255, 0.2); /* Semi-transparent white for Retake */
             color: white;
-            border: 1px solid #555;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+         .retake-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
         .send-btn {
             background: #4CAF50;
             color: white;
+        }
+         .send-btn:hover {
+            background: #43A047;
         }
 
 
@@ -535,10 +549,10 @@
         </div>
         <div class="preview-controls">
             <button id="retakeShotBtn" class="action-btn retake-btn">
-                <i class="fas fa-camera-rotate"></i> Retake
+               Retake
             </button>
             <button id="sendShotBtn" class="action-btn send-btn">
-                <i class="fas fa-paper-plane"></i> Send
+               Send
             </button>
         </div>
     </div>
