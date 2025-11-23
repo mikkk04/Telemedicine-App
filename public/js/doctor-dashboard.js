@@ -179,6 +179,10 @@ function showRescheduleModal(appointment) {
     document.getElementById('resched-reason').value = ''; // Clear previous reason
     showModal('reschedule-modal');
 }
+/**
+ * Renders the Call Details Modal.
+ * @param {object} appointment The appointment object.
+ */
 function showCallDetailsModal(appointment) {
     console.log('[showCallDetailsModal] Opening modal for appointment:', JSON.stringify(appointment, null, 2));
 
@@ -203,6 +207,7 @@ function showCallDetailsModal(appointment) {
     createJoinBtn.dataset.appointmentId = appointment.id;
     finishBtn.dataset.appointmentId = appointment.id;
     
+    // ⭐ FIX APPLIED: Ensure QR code generation and link display logic is executed on every modal open
     if (appointment.authToken) {
         console.log('[showCallDetailsModal] Appointment HAS authToken:', appointment.authToken);
         createJoinBtn.textContent = 'Join Call';
@@ -210,22 +215,30 @@ function showCallDetailsModal(appointment) {
         callLinkEl.textContent = appointment.authToken;
         
         console.log('[showCallDetailsModal] Attempting to generate QR code from existing token...');
+        
+        // Clear previous QR content before generating new one
+        qrCodeEl.src = ''; 
+        qrCodeEl.alt = 'Generating QR Code...';
+
         if (typeof QRCode === 'undefined') {
              console.error('[showCallDetailsModal] QRCode library is not loaded!');
              qrCodeEl.alt = 'QR Code library not loaded.';
              // Don't return, link should still work
         } else {
-            QRCode.toDataURL(appointment.authToken, { width: 200, margin: 2 }, (err, url) => {
-                if (err) {
-                    console.error('[showCallDetailsModal] Failed to generate QR code:', err);
-                    qrCodeEl.src = ''; 
-                    qrCodeEl.alt = 'Failed to load QR code.';
-                } else {
-                    console.log('[showCallDetailsModal] QR code generated successfully.');
-                    qrCodeEl.src = url;
-                    qrCodeEl.alt = 'Video call QR code';
-                }
-            });
+             // Use a small delay for safety and ensure QR library is ready, although usually unnecessary
+            setTimeout(() => {
+                QRCode.toDataURL(appointment.authToken, { width: 200, margin: 2 }, (err, url) => {
+                    if (err) {
+                        console.error('[showCallDetailsModal] Failed to generate QR code:', err);
+                        qrCodeEl.src = ''; 
+                        qrCodeEl.alt = 'Failed to load QR code.';
+                    } else {
+                        console.log('[showCallDetailsModal] QR code generated successfully.');
+                        qrCodeEl.src = url;
+                        qrCodeEl.alt = 'Video call QR code';
+                    }
+                });
+            }, 50); // Small delay
         }
     } else {
         console.log('[showCallDetailsModal] Appointment does NOT have authToken yet.');
@@ -233,7 +246,7 @@ function showCallDetailsModal(appointment) {
         callLinkEl.href = '#';
         callLinkEl.textContent = 'Link will appear here after creating the call.';
         qrCodeEl.src = ''; 
-        qrCodeEl.alt = 'QR code will appear here.';
+        qrCodeEl.alt = 'QR code will appear here after creating the call.';
     }
 
     createJoinBtn.disabled = false;
@@ -295,8 +308,8 @@ function setupCalendarEventListeners() {
                     // Store the full appointment data safely on the button
                     let appDataString = '{}';
                     try {
-                       // Use encodeURIComponent for safety, wrap attribute value in single quotes
-                       appDataString = `'${encodeURIComponent(JSON.stringify(app))}'`; 
+                        // Use encodeURIComponent for safety, wrap attribute value in single quotes
+                        appDataString = `'${encodeURIComponent(JSON.stringify(app))}'`; 
                     } catch (stringifyErr) {
                         console.error("Error stringifying appointment data for button:", stringifyErr, app);
                     }
@@ -689,11 +702,11 @@ function renderPatientList(patients) {
         li.dataset.patientUsername = patient.patientUsername;
 
         li.innerHTML = `
-            <img src="${profilePicSrc}" alt="${patient.patientName}'s profile picture" class="w-12 h-12 rounded-full mr-4 object-cover" onerror="this.onerror=null; this.src='${defaultPatientAvatar}';">  
-            <div class="flex-grow overflow-hidden">  
-                <div class="font-semibold truncate text-[var(--text-primary)]">${patient.patientName}</div>  
-                <div class="text-sm text-[var(--text-secondary)] truncate">Username: ${patient.patientUsername}</div>  
-            </div>`;
+             <img src="${profilePicSrc}" alt="${patient.patientName}'s profile picture" class="w-12 h-12 rounded-full mr-4 object-cover" onerror="this.onerror=null; this.src='${defaultPatientAvatar}';">  
+             <div class="flex-grow overflow-hidden">  
+                 <div class="font-semibold truncate text-[var(--text-primary)]">${patient.patientName}</div>  
+                 <div class="text-sm text-[var(--text-secondary)] truncate">Username: ${patient.patientUsername}</div>  
+             </div>`;
         
         // This attaches the necessary click handler that you defined elsewhere in the file (e.g., inside window.onload)
         li.addEventListener('click', function(event) {
@@ -1058,16 +1071,16 @@ socket.on('appointments:update', (data) => {
         if (activeViewId === 'messages-view') {
              // Re-check relevant appointment for current chat if a patient is selected
              if (selectedPatient) {
-                   const relevantAppointment = allAppointments
+                  const relevantAppointment = allAppointments
                        .filter(app => (app.patientName === selectedPatient.patientUsername || app.patientFullName === selectedPatient.patientName) && (app.status === 'Accepted' || app.status === 'Completed') && app.doctorName === currentUsername)
                        .sort((a, b) => new Date(`${b.appointmentDate.split('T')[0]}T${b.appointmentTime}`) - new Date(`${a.appointmentDate.split('T')[0]}T${a.appointmentTime}`))[0];
-                   
-                   const oldAppointmentId = selectedAppointmentIdForChat;
-                   selectedAppointmentIdForChat = relevantAppointment ? relevantAppointment.id : null;
-                   
-                   if (oldAppointmentId !== selectedAppointmentIdForChat) {
-                        console.warn(`[Appointments Update] Relevant appointment ID for current chat changed from ${oldAppointmentId} to ${selectedAppointmentIdForChat}`);
-                   }
+                    
+                  const oldAppointmentId = selectedAppointmentIdForChat;
+                  selectedAppointmentIdForChat = relevantAppointment ? relevantAppointment.id : null;
+                    
+                  if (oldAppointmentId !== selectedAppointmentIdForChat) {
+                         console.warn(`[Appointments Update] Relevant appointment ID for current chat changed from ${oldAppointmentId} to ${selectedAppointmentIdForChat}`);
+                  }
              }
         }
         // No specific update needed for profile view on appointment changes
@@ -1116,7 +1129,7 @@ socket.on('user:profile-update', (data) => {
         
         // If profile view is active, re-render it
         if (document.getElementById('profile-view')?.classList.contains('hidden') === false) {
-             renderProfile(); 
+              renderProfile(); 
         }
 
         // Check if username changed and update local storage if necessary
@@ -1466,5 +1479,3 @@ if (saveNotesBtn) {
 // setupModalCloseButtons(); // Already called in DOMContentLoaded
 console.log("Initial setup calls completed in DOMContentLoaded.");
 // --- END Initial Setup Calls ---
-
-// doctor-dashboard.js
