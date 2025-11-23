@@ -185,7 +185,7 @@ function showRescheduleModal(appointment) {
     document.getElementById('resched-date').value = ''; // Clear previous value
     const timeSelect = document.getElementById('resched-time'); timeSelect.innerHTML = '<option value="" disabled selected>Select a time</option>';
     const availableTimes = []; for (let i = 8; i < 12; i++) { availableTimes.push(`${i.toString().padStart(2, '0')}:00:00`); availableTimes.push(`${i.toString().padStart(2, '0')}:30:00`); } for (let i = 13; i < 17; i++) { availableTimes.push(`${i.toString().padStart(2, '0')}:00:00`); availableTimes.push(`${i.toString().padStart(2, '0')}:30:00`); }
-    availableTimes.forEach(time12 => { const [hour, minute] = time12.split(':'); const hourInt = parseInt(hour, 10); const ampm = hourInt >= 12 ? 'PM' : 'AM'; const hour12 = hourInt % 12 || 12; const time12 = `${hour12}:${minute} ${ampm}`; const option = document.createElement('option'); option.value = time12; option.textContent = time12; timeSelect.appendChild(option); });
+    availableTimes.forEach(time24 => { const [hour, minute] = time24.split(':'); const hourInt = parseInt(hour, 10); const ampm = hourInt >= 12 ? 'PM' : 'AM'; const hour12 = hourInt % 12 || 12; const time12 = `${hour12}:${minute} ${ampm}`; const option = document.createElement('option'); option.value = time24; option.textContent = time12; timeSelect.appendChild(option); });
     document.getElementById('resched-reason').value = ''; // Clear previous reason
     showModal('reschedule-modal');
 }
