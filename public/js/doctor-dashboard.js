@@ -1210,77 +1210,72 @@ socket.on('user:status-changed', ({ username, isOnline }) => {
 
 
 // --- Main Click Event Delegation ---
-document.addEventListener('click', (e) => {
-    const target = e.target.closest('button'); if (!target) return; // Only interested in button clicks
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const id = btn.dataset.id;
 
-    const appointmentId = target.dataset.id; // Used by accept, reject, view details (outside calendar)
-    const isAcceptBtn = target.classList.contains('accept-btn');
-    const isRejectBtn = target.classList.contains('reject-btn');
-    const isViewDetailsBtn = target.classList.contains('view-details-btn');
-    const isRescheduleBtn = target.classList.contains('reschedule-btn'); // Generic reschedule class
-
-    // --- Reschedule Button (Outside Calendar Modal) ---
-    // The reschedule button *inside* the calendar modal is handled by `setupCalendarEventListeners`
-    if (isRescheduleBtn && !target.closest('#modal-appointments-list') && appointmentId) {
-        const appointment = allAppointments.find(app => app.id == appointmentId);
-        if (appointment) {
-            console.log("[Main Click Handler] Reschedule button (outside calendar modal) clicked for ID:", appointmentId);
-            showRescheduleModal(appointment);
-        } else {
-            console.error("[Main Click Handler] Reschedule - Could not find appointment with ID:", appointmentId);
-            alert("Error: Could not find appointment details to reschedule.");
-        }
-    }
-    // --- Accept Button ---
-    else if (isAcceptBtn && appointmentId) {
-        const appointmentToAccept = allAppointments.find(app => app.id == appointmentId);
-        if (!appointmentToAccept) { alert('Error: Could not find appointment details.'); return; }
-        if (hasConflict(appointmentToAccept.appointmentDate, appointmentToAccept.appointmentTime)) { alert('Schedule Conflict: You already have an accepted appointment at this time.'); return; }
-        console.log("[Main Click Handler] Accept button clicked for ID:", appointmentId);
-        socket.emit('appointment:accept', { appointmentId: appointmentId, doctorName: currentUsername }, (response) => {
-            if (response.success) { alert('Appointment accepted successfully!'); }
-            else { alert('Error accepting appointment: ' + (response.message || 'Unknown error.')); }
-        });
-    }
-    // --- Reject Button ---
-    else if (isRejectBtn && appointmentId) {
-        rejectionAppointmentId = appointmentId;
-        console.log("[Main Click Handler] Reject button clicked, opening reject modal for ID:", appointmentId);
-        showModal('reject-modal');
-    }
-    // --- View Details / Start Call Button ---
-    else if (isViewDetailsBtn && appointmentId) {
-        const appointment = allAppointments.find(app => app.id == appointmentId);
-        if (appointment) {
-            console.log("[Main Click Handler] View Details clicked for appointment:", appointment);
-            if (appointment.status === 'Accepted' || appointment.status === 'Rescheduled-Pending') {
-                console.log("--> Status Accepted/Rescheduled, showing Call Details Modal.");
-                showCallDetailsModal(appointment);
-            } else if (appointment.status === 'Completed' || appointment.status === 'Rejected') {
-                console.log("--> Status Completed/Rejected, showing Notes Modal (read-only).");
-                document.getElementById('notesPatientName').textContent = appointment.patientFullName || appointment.patientName;
-                document.getElementById('notesSubject').textContent = appointment.subject;
-                document.getElementById('notesDate').textContent = new Date(appointment.appointmentDate.split('T')[0] + 'T00:00:00').toLocaleDateString();
-                document.getElementById('notesTime').textContent = appointment.appointmentTime;
-                const notes = appointment.notes || appointment.rejectionNotes || (appointment.status === 'Rejected' ? 'No rejection reason provided.' : 'No notes saved.');
-                document.getElementById('doctorNotes').value = notes;
-                document.getElementById('notesModal').dataset.appointmentId = appointmentId; // Store ID for reference if needed
-                setupDiagnosisSelectors(false); // Setup selectors (read-only state)
-                populateSelectorsFromNotes(notes); // Try to fill them
-                document.getElementById('diagnosis-type-select').disabled = true; // Ensure disabled
-                document.getElementById('diagnosis-specific-select').disabled = true; // Ensure disabled
-                document.getElementById('doctorNotes').readOnly = true; // Ensure read-only
-                document.getElementById('saveNotesBtn').classList.add('hidden'); // Hide save button
-                showModal('notesModal');
-            } else {
-                 console.warn("[Main Click Handler] View Details - Appointment status is unexpected:", appointment.status);
-                 alert("Cannot view details for an appointment with status: " + appointment.status);
+        if (btn.classList.contains('accept-btn')) {
+            socket.emit('appointment:accept', { appointmentId: id, doctorName: currentUsername }, (response) => {
+                if (response.success) alert('Appointment accepted successfully!');
+                else alert('Error: ' + (response.message || 'Unknown error'));
+            });
+        } else if (btn.classList.contains('view-details-btn')) {
+            const app = allAppointments.find(a => a.id == id);
+            if(app) {
+                if (app.status === 'Accepted' || app.status === 'Rescheduled-Pending') {
+                    showCallDetailsModal(app);
+                } else if (app.status === 'Completed' || app.status === 'Rejected') {
+                    document.getElementById('notesPatientName').textContent = app.patientFullName || app.patientName;
+                    document.getElementById('doctorNotes').value = app.notes || app.rejectionNotes || 'No notes.';
+                    document.getElementById('doctorNotes').readOnly = true;
+                    document.getElementById('saveNotesBtn').classList.add('hidden');
+                    showModal('notesModal');
+                }
             }
-        } else {
-            console.error("[Main Click Handler] View Details - Could not find appointment with ID:", appointmentId);
-            alert("Error: Could not find appointment details.");
+        } else if (btn.id === 'createJoinCallBtn') {
+            const appId = btn.dataset.appointmentId;
+            
+            // If logic is "Create", invoke server to set roomCreated=true and return link
+            if(btn.textContent.includes('Create')) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+                
+                socket.emit('doctor:create-room', { appointmentId: appId, doctorName: currentUsername }, (res) => {
+                    if(res.success) {
+                        const app = allAppointments.find(a => a.id == appId);
+                        if(app) app.roomCreated = 1; // Optimistic update
+                        
+                        // 1. Construct the full absolute URL
+                        const fullRedirectUrl = `${window.location.origin}${res.redirectUrl}`;
+                        
+                        // 2. ⭐ FIX: Automatically open the call tab immediately
+                        console.log("Auto-opening call URL:", fullRedirectUrl);
+                        window.open(fullRedirectUrl, '_blank');
+
+                        // 3. Update the modal UI (Change button to "Join Call")
+                        showCallDetailsModal(app, res.redirectUrl); 
+                    } else {
+                        alert(res.message);
+                        btn.disabled = false;
+                        btn.textContent = 'Create Call';
+                    }
+                });
+            }
+        } else if (btn.id === 'finishAppointmentBtn') {
+            const appId = btn.dataset.appointmentId;
+            hideModal('callDetailsModal');
+            const app = allAppointments.find(a => a.id == appId);
+            if (app) {
+                document.getElementById('notesPatientName').textContent = app.patientFullName || app.patientName;
+                document.getElementById('doctorNotes').value = app.notes || '';
+                document.getElementById('doctorNotes').readOnly = false;
+                document.getElementById('notesModal').dataset.appointmentId = appId;
+                document.getElementById('saveNotesBtn').classList.remove('hidden');
+                setupDiagnosisSelectors(true); 
+                showModal('notesModal');
+            }
         }
-    }
     // --- Create / Join Call Button (Inside Call Details Modal) ---
    else if (e.target.id === 'createJoinCallBtn') {
         const btn = e.target;
