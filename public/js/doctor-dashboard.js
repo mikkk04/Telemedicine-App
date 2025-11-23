@@ -183,78 +183,67 @@ function showRescheduleModal(appointment) {
  * Renders the Call Details Modal.
  * @param {object} appointment The appointment object.
  */
-function showCallDetailsModal(appointment) {
-    console.log('[showCallDetailsModal] Opening modal for appointment:', JSON.stringify(appointment, null, 2));
-
+function showCallDetailsModal(appointment, serverRedirectUrl = null) {
     const callPatientNameEl = document.getElementById('callPatientName');
-    const callSubjectEl = document.getElementById('callSubject');
-    const callDateTimeEl = document.getElementById('callDateTime');
     const createJoinBtn = document.getElementById('createJoinCallBtn');
-    const finishBtn = document.getElementById('finishAppointmentBtn');
     const callLinkEl = document.getElementById('callLinkText');
     const qrCodeEl = document.getElementById('qrCodeImage');
 
-    if (!callPatientNameEl || !callSubjectEl || !callDateTimeEl || !createJoinBtn || !finishBtn || !callLinkEl || !qrCodeEl) {
-        console.error("[showCallDetailsModal] ERROR: One or more modal elements are missing from the HTML.");
-        alert("An error occurred. Could not show call details because modal elements are missing. Check console (F12).");
-        return;
+    callPatientNameEl.textContent = appointment.patientFullName || appointment.patientName;
+    createJoinBtn.dataset.appointmentId = appointment.id;
+    document.getElementById('finishAppointmentBtn').dataset.appointmentId = appointment.id;
+
+    let fullUrl = '#';
+
+    // 1. Construct the absolute URL
+    // We must ensure we are creating a valid URL structure: domain + /call/ID + query params
+    if (serverRedirectUrl) {
+        // If server sent a redirect URL (e.g. /call/123?token=...), make it absolute
+        fullUrl = serverRedirectUrl.startsWith('http') ? serverRedirectUrl : `${window.location.origin}${serverRedirectUrl}`;
+    } else if (appointment.authToken) {
+        // If we only have the token string, construct the URL manually
+        fullUrl = `${window.location.origin}/call/${appointment.id}?token=${appointment.authToken}`;
     }
 
-    callPatientNameEl.textContent = appointment.patientFullName || appointment.patientName;
-    callSubjectEl.textContent = appointment.subject;
-    callDateTimeEl.textContent = `${new Date(appointment.appointmentDate.split('T')[0] + 'T00:00:00').toLocaleDateString()} at ${appointment.appointmentTime}`;
+    console.log('[Call Modal] Constructed URL:', fullUrl);
 
-    createJoinBtn.dataset.appointmentId = appointment.id;
-    finishBtn.dataset.appointmentId = appointment.id;
-    
-    // --- FIX: Separate QR display logic from Button Logic ---
-
-    // 1. QR and Link Display (Always show if token exists, regardless of room status)
-    if (appointment.authToken) {
-        callLinkEl.href = `/call/${appointment.id}?token=${appointment.authToken}`;
-        callLinkEl.textContent = `${window.location.origin}/call/${appointment.id}?token=${appointment.authToken}`;
+    // 2. Apply URL to Link & QR
+    if (fullUrl !== '#') {
+        callLinkEl.href = fullUrl;
+        callLinkEl.textContent = fullUrl;
         
-        // Generate QR
-        qrCodeEl.src = ''; 
-        qrCodeEl.alt = 'Generating QR Code...';
-        if (typeof QRCode === 'undefined') {
-             qrCodeEl.alt = 'QR Code library not loaded.';
-        } else {
-            setTimeout(() => {
-                QRCode.toDataURL(callLinkEl.href, { width: 200, margin: 2 }, (err, url) => {
-                    if (err) {
-                        console.error('[showCallDetailsModal] Failed to generate QR code:', err);
-                        qrCodeEl.alt = 'Failed to load QR code.';
-                    } else {
-                        qrCodeEl.src = url;
-                        qrCodeEl.alt = 'Video call QR code';
-                    }
+        // 3. Apply URL to QR Code
+        setTimeout(() => {
+            if (typeof QRCode !== 'undefined') {
+                qrCodeEl.src = ''; 
+                QRCode.toDataURL(fullUrl, { width: 200, margin: 2 }, (err, url) => {
+                    if(!err) qrCodeEl.src = url;
                 });
-            }, 50); 
-        }
+            }
+        }, 50);
     } else {
-        // Fallback if no token (shouldn't happen for Accepted apps with the new server logic)
         callLinkEl.href = '#';
         callLinkEl.textContent = 'Link generating...';
-        qrCodeEl.alt = 'QR code pending...';
+        qrCodeEl.src = '';
     }
 
-    // 2. Button Logic (Controlled by roomCreated flag)
-    // If roomCreated is 1 (true), show "Join". If 0 (false), show "Create".
-    if (appointment.roomCreated) {
-        console.log('[showCallDetailsModal] Room is already created. Showing Join button.');
+    // 4. Apply URL to Button (Join Mode)
+    // If room exists OR we just got a redirect URL, show JOIN and set onclick
+    if (appointment.roomCreated || serverRedirectUrl) {
         createJoinBtn.textContent = 'Join Call';
-        createJoinBtn.onclick = () => {
-             window.open(callLinkEl.href, '_blank');
+        createJoinBtn.disabled = false;
+        createJoinBtn.onclick = (e) => {
+            e.preventDefault(); 
+            e.stopPropagation();
+            console.log('[Join Call] Opening URL:', fullUrl);
+            window.open(fullUrl, '_blank'); 
         };
     } else {
-        console.log('[showCallDetailsModal] Room not yet created. Showing Create button.');
         createJoinBtn.textContent = 'Create Call';
-        // The onclick is handled by the main event listener in the file, 
-        // which triggers the 'doctor:create-room' socket event.
+        createJoinBtn.disabled = false;
+        createJoinBtn.onclick = null; // Handled by global event listener
     }
 
-    createJoinBtn.disabled = false;
     showModal('callDetailsModal');
 }
 // --- END MODAL & UI HELPERS ---
@@ -1295,60 +1284,37 @@ document.addEventListener('click', (e) => {
     }
     // --- Create / Join Call Button (Inside Call Details Modal) ---
     else if (target.id === 'createJoinCallBtn') {
-        const currentAppointmentId = target.dataset.appointmentId; // Get ID from the button itself
-        console.log(`[Create/Join Call Button Click] Clicked for appointment ID: ${currentAppointmentId}`);
-        const appointment = allAppointments.find(app => app.id == currentAppointmentId);
-        const callLinkEl = document.getElementById('callLinkText');
-        const qrCodeEl = document.getElementById('qrCodeImage');
+        const currentAppointmentId = target.dataset.appointmentId;
+        console.log(`[Create/Join Call] Clicked for appointment ID: ${currentAppointmentId}`);
+        
+        // Only trigger "Create" logic if the button text actually says "Create"
+        // (If it says "Join", the click is handled by the listener inside showCallDetailsModal)
+        if (target.textContent.includes('Create')) {
+            target.disabled = true;
+            target.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
 
-        if (!appointment) { console.error("[Create/Join Call] Could not find appointment object for ID:", currentAppointmentId); alert('Error: Could not find appointment details.'); return; }
-        if (!callLinkEl || !qrCodeEl) { console.error("[Create/Join Call] Modal link or QR element missing!"); alert('Error: Modal elements (link/QR) are missing.'); return; }
+            socket.emit('doctor:create-room', { appointmentId: currentAppointmentId, doctorName: currentUsername }, (response) => {
+                console.log('[Create Call] Response:', response);
 
-        console.log("[Create/Join Call] Current appointment data:", JSON.stringify(appointment, null, 2));
-
-        // Case 1: Token exists. Just join.
-        if (appointment.authToken) {
-            console.log('[Create/Join Call] AuthToken exists. Joining room:', appointment.authToken);
-            window.open(appointment.authToken, '_blank'); return;
+                if (response && response.success) {
+                    // Find the appointment in local state
+                    const appointment = allAppointments.find(app => app.id == currentAppointmentId);
+                    
+                    if (appointment) {
+                        // 1. Optimistically update room status
+                        appointment.roomCreated = 1; 
+                        
+                        // 2. Re-open the modal with the NEW redirect URL from server
+                        // ⭐ IMPORTANT: We pass the URL here, we do NOT overwrite appointment.authToken
+                        showCallDetailsModal(appointment, response.redirectUrl);
+                    }
+                } else {
+                    alert(response.message || 'Failed to create call.');
+                    target.disabled = false;
+                    target.textContent = 'Create Call';
+                }
+            });
         }
-
-        // Case 2: Token does not exist. Create it.
-        // This is the action that now generates the link and updates the UI instantly.
-        console.log('[Create/Join Call] AuthToken does NOT exist. Requesting server to create room...');
-        target.disabled = true;
-        target.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating link...'; // Changed text to reflect link creation, not just room start
-
-        socket.emit('doctor:create-room', { appointmentId: currentAppointmentId, doctorName: currentUsername }, (response) => {
-            console.log('[Create/Join Call] Received response from server:', JSON.stringify(response, null, 2));
-            
-            if (response && response.success && response.redirectUrl) {
-                console.log('[Create/Join Call] Room creation SUCCESS. URL:', response.redirectUrl);
-                
-                // 1. Update local appointment object
-                appointment.authToken = response.redirectUrl; 
-                
-                // 2. Refresh the modal view, which will now show the link and QR code,
-                // and change the button to 'Join Call'.
-                // Hiding and showing the modal forces the render logic in showCallDetailsModal to re-run.
-                // We use showCallDetailsModal directly, which handles UI update based on new authToken.
-                hideModal('callDetailsModal');
-                showCallDetailsModal(appointment);
-                
-                target.disabled = false;
-                
-                // Optional: Automatically open call for doctor after creation, or rely on them hitting "Join Call"
-                // window.open(response.redirectUrl, '_blank'); 
-                
-                // 3. Refetch appointments (server will likely trigger appointments:update anyway)
-                console.log('[Create/Join Call] Emitting get:all:appointments to sync state.');
-                socket.emit('get:all:appointments'); 
-            } else {
-                console.error('[Create/Join Call] Room creation FAILED. Server response:', response);
-                alert(`Failed to create link: ${response?.message || 'Unknown server error'}`);
-                target.disabled = false;
-                target.textContent = 'Create Call'; // Reset button text
-            }
-        });
     }
     // --- Finish Appointment Button (Inside Call Details Modal) ---
     else if (target.id === 'finishAppointmentBtn') { 
@@ -1364,19 +1330,18 @@ document.addEventListener('click', (e) => {
             document.getElementById('notesTime').textContent = appointment.appointmentTime; 
             
             // Set up notes section
-            document.getElementById('doctorNotes').value = appointment.notes || ''; // Pre-fill if notes exist from previous attempt?
+            document.getElementById('doctorNotes').value = appointment.notes || ''; 
             document.getElementById('doctorNotes').readOnly = false; 
             document.getElementById('notesModal').dataset.appointmentId = currentAppointmentId; 
             document.getElementById('saveNotesBtn').classList.remove('hidden'); 
             
             // Set up diagnosis selectors
-            setupDiagnosisSelectors(true); // Setup for new diagnosis input
-            populateSelectorsFromNotes(appointment.notes); // Try to pre-fill selectors if notes existed and contained diagnosis
-            document.getElementById('diagnosis-type-select').disabled = false; // Ensure enabled
-             // Specific select gets enabled when type is chosen (handled in setupDiagnosisSelectors)
+            setupDiagnosisSelectors(true); 
+            populateSelectorsFromNotes(appointment.notes); 
+            document.getElementById('diagnosis-type-select').disabled = false; 
             document.getElementById('diagnosis-specific-select').disabled = !document.getElementById('diagnosis-type-select').value; 
             
-            updateDiagnosisTextarea(); // Ensure textarea format is correct based on current selections
+            updateDiagnosisTextarea(); 
             
             showModal('notesModal'); 
         } else {
