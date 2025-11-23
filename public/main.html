@@ -389,75 +389,54 @@
                 background: #ff4444;
             }
 
-            /* --- FIXED MOBILE CHAT OVERLAY STYLES --- */
-            
-            /* 1. Default Hidden State & Geometry */
-            #call-interface #chat-container {
-                display: none !important; /* Force hidden initially */
-                
-                /* Force Full Screen Overlay */
-                position: fixed !important;
+            /* * Chat Mobile: Full Screen Overlay - FIXED & FORCED 
+             * Using !important to override any JS slide-in logic 
+             */
+            #chat-container {
+                display: none; /* Controlled by JS */
+                position: fixed !important; 
                 top: 0 !important;
-                left: 0 !important;
+                left: 0 !important; 
                 right: 0 !important;
                 bottom: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                height: 100dvh !important; /* Mobile dynamic height */
-                
-                /* Appearance */
-                background-color: #ffffff !important;
-                z-index: 99999 !important; /* Above everything */
+                width: 100% !important;
+                height: 100% !important;
+                background: #f5f5f5 !important;
+                flex-direction: column;
+                z-index: 9999 !important; /* Top priority */
+                transform: none !important; /* Disable any slide-in transforms */
                 margin: 0 !important;
-                padding: 0 !important;
-                border: none !important;
-                transform: none !important;
-                
-                /* Layout for Internal Chat Elements */
-                flex-direction: column !important;
-                box-sizing: border-box !important;
             }
 
-            /* 2. Active State (Overrides Hidden) */
-            /* Checks for .active class OR if JS sets display:flex/block inline */
-            #call-interface #chat-container.active,
-            #call-interface #chat-container[style*="display: block"],
-            #call-interface #chat-container[style*="display: flex"] {
+            /* Force display flex when active on mobile */
+            #chat-container[style*="display: block"], 
+            #chat-container[style*="display: flex"],
+            #chat-container.active {
                 display: flex !important;
             }
 
             #chat-header {
-                flex: 0 0 auto;
                 padding: 15px;
                 background: #fff;
                 border-bottom: 1px solid #ddd;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                height: 60px; /* Fixed height for header */
-                box-sizing: border-box;
             }
 
             #chat-box {
-                flex: 1; /* Occupy remaining space */
+                flex: 1;
                 overflow-y: auto;
                 padding: 10px;
-                background: #f5f5f5;
-                width: 100%;
-                box-sizing: border-box;
             }
 
             #chat-controls {
-                flex: 0 0 auto;
                 padding: 10px;
-                padding-bottom: max(10px, env(safe-area-inset-bottom)); /* iOS Safe Area */
                 background: #fff;
                 border-top: 1px solid #ddd;
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                width: 100%;
-                box-sizing: border-box;
             }
             
             .chat-input {
@@ -465,7 +444,6 @@
                 padding: 10px;
                 border-radius: 20px;
                 border: 1px solid #ccc;
-                min-width: 0; /* Prevent flex overflow */
             }
         }
     </style>
