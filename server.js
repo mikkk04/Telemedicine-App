@@ -1692,58 +1692,39 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`.trim();
     
    socket.on('doctor:create-room', async ({ appointmentId, doctorName }, callback) => {
         if (socket.data.user?.role !== 'Doctor') {
-            console.warn(`[SECURITY] Non-Doctor user '${socket.data.user?.username}' attempted to create a room.`);
             return callback({ success: false, message: 'Only doctors can create consultation rooms.' });
         }
-        if (socket.data.user?.username !== doctorName) {
-            console.warn(`[SECURITY] User '${socket.data.user?.username}' attempted to create a room for another doctor ('${doctorName}').`);
-            return callback({ success: false, message: 'You can only create rooms for your own appointments.' });
-        }
         
-        console.log(`[Appointment] Received 'doctor:create-room' request for appointment ID: ${appointmentId} from client '${doctorName}'`);
-        
-        // ⭐ FIX: REMOVE authToken GENERATION HERE. We only fetch the existing token.
-        // const authToken = crypto.randomBytes(16).toString('hex'); <-- REMOVED
+        console.log(`[Appointment] Doctor '${doctorName}' starting room for ID: ${appointmentId}`);
         
         try {
-            // 1. Fetch the existing appointment details, including the already generated authToken
+            // 1. Fetch existing appointment
             const [appRows] = await pool.query(`SELECT * FROM appointments WHERE id = ? AND doctorName = ?`.trim(), [appointmentId, doctorName]);
             if (appRows.length === 0 || !appRows[0].authToken) {
-                 console.error(`[Appointment] create-room failed: Appointment #${appointmentId} not found or AuthToken is missing.`);
-                 return callback({ success: false, message: 'Failed to find a valid room link. Try accepting the appointment again.' });
+                 return callback({ success: false, message: 'Appointment not found or invalid.' });
             }
             const appointment = appRows[0];
-            const authToken = appointment.authToken; // Use the existing token
 
-            // 2. Update the roomCreated flag (or do nothing if already set, which is fine)
-            // Note: The original code updated the token and reset roomCreated to FALSE, which is a bit weird.
-            // We simplify this to ensure the room is now considered 'started' for notification purposes if needed later.
+            // 2. ⭐ FIX: Set roomCreated to TRUE (1)
             await pool.query(
-                 `UPDATE appointments SET roomCreated = FALSE WHERE id = ? AND doctorName = ?`.trim(), // Keeping original flag update logic for compatibility
-                 [appointmentId, doctorName]
+                 `UPDATE appointments SET roomCreated = TRUE WHERE id = ?`.trim(), 
+                 [appointmentId]
             );
 
-            console.log(`[Appointment] Using existing auth token for appointment ${appointmentId}.`);
-        
-            const patientName = appointment.patientName;
-            const patientRoom = `user_room_${patientName}`;
-            
-            console.log(`[Appointment] Notifying patient in room '${patientRoom}' that room ${appointment.id} is ready.`);
-            // This notification is slightly redundant now but kept for robustness
+            // 3. Notify everyone
+            const patientRoom = `user_room_${appointment.patientName}`;
             io.to(patientRoom).emit('room:ready', { appointment: appointment }); 
-
             await notifyAppointmentUpdate(appointmentId);
             
-            console.log(`[Appointment] Responding to doctor with redirect URL.`);
-            // Use the fetched token
+            // 4. Send back the URL
             callback({
                 success: true,
-                redirectUrl: `/call/${appointment.id}?token=${authToken}`
+                redirectUrl: `/call/${appointment.id}?token=${appointment.authToken}`
             });
         
         } catch (error) {
-            console.error(`[Appointment] CRITICAL ERROR creating room for appointment ${appointmentId}:`, error);
-            callback({ success: false, message: 'A server error occurred while creating the room.' });
+            console.error(`[Appointment] Error starting room ${appointmentId}:`, error);
+            callback({ success: false, message: 'Server error starting room.' });
         }
     });
     socket.on('appointment:reject', async (data) => {

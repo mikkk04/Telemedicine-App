@@ -207,32 +207,25 @@ function showCallDetailsModal(appointment) {
     createJoinBtn.dataset.appointmentId = appointment.id;
     finishBtn.dataset.appointmentId = appointment.id;
     
-    // --- FIX APPLIED: Link and QR Persistence ---
+    // --- FIX: Separate QR display logic from Button Logic ---
+
+    // 1. QR and Link Display (Always show if token exists, regardless of room status)
     if (appointment.authToken) {
-        console.log('[showCallDetailsModal] Appointment HAS authToken:', appointment.authToken);
-        createJoinBtn.textContent = 'Join Call';
-        callLinkEl.href = appointment.authToken;
-        callLinkEl.textContent = appointment.authToken;
+        callLinkEl.href = `/call/${appointment.id}?token=${appointment.authToken}`;
+        callLinkEl.textContent = `${window.location.origin}/call/${appointment.id}?token=${appointment.authToken}`;
         
-        console.log('[showCallDetailsModal] Attempting to generate QR code from existing token...');
-        
-        // Clear previous QR content before generating new one
+        // Generate QR
         qrCodeEl.src = ''; 
         qrCodeEl.alt = 'Generating QR Code...';
-
         if (typeof QRCode === 'undefined') {
-             console.error('[showCallDetailsModal] QRCode library is not loaded!');
              qrCodeEl.alt = 'QR Code library not loaded.';
         } else {
-            // Ensure QR generation happens when modal opens if token exists
             setTimeout(() => {
-                QRCode.toDataURL(appointment.authToken, { width: 200, margin: 2 }, (err, url) => {
+                QRCode.toDataURL(callLinkEl.href, { width: 200, margin: 2 }, (err, url) => {
                     if (err) {
                         console.error('[showCallDetailsModal] Failed to generate QR code:', err);
-                        qrCodeEl.src = ''; 
                         qrCodeEl.alt = 'Failed to load QR code.';
                     } else {
-                        console.log('[showCallDetailsModal] QR code generated successfully.');
                         qrCodeEl.src = url;
                         qrCodeEl.alt = 'Video call QR code';
                     }
@@ -240,19 +233,29 @@ function showCallDetailsModal(appointment) {
             }, 50); 
         }
     } else {
-        console.log('[showCallDetailsModal] Appointment does NOT have authToken yet.');
-        createJoinBtn.textContent = 'Create Call';
-        // Reset to placeholder text/link state, which matches the image provided by the user
+        // Fallback if no token (shouldn't happen for Accepted apps with the new server logic)
         callLinkEl.href = '#';
-        callLinkEl.textContent = 'Link will appear here after creating the call.';
-        qrCodeEl.src = ''; 
-        qrCodeEl.alt = 'QR code will appear here after creating the call.';
+        callLinkEl.textContent = 'Link generating...';
+        qrCodeEl.alt = 'QR code pending...';
     }
-    // --- END FIX APPLIED ---
+
+    // 2. Button Logic (Controlled by roomCreated flag)
+    // If roomCreated is 1 (true), show "Join". If 0 (false), show "Create".
+    if (appointment.roomCreated) {
+        console.log('[showCallDetailsModal] Room is already created. Showing Join button.');
+        createJoinBtn.textContent = 'Join Call';
+        createJoinBtn.onclick = () => {
+             window.open(callLinkEl.href, '_blank');
+        };
+    } else {
+        console.log('[showCallDetailsModal] Room not yet created. Showing Create button.');
+        createJoinBtn.textContent = 'Create Call';
+        // The onclick is handled by the main event listener in the file, 
+        // which triggers the 'doctor:create-room' socket event.
+    }
 
     createJoinBtn.disabled = false;
     showModal('callDetailsModal');
-    console.log('[showCallDetailsModal] Modal shown.');
 }
 // --- END MODAL & UI HELPERS ---
 
