@@ -3,32 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Telemedicine</title>
+    <title>Login - TeleMed Connect</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS Variables for Easy Theming --- */
+        :root {
+            --primary-color: #01BAEF;
+            --secondary-color: #20BF55;
+            --bg-gradient: linear-gradient(135deg, #20BF55 0%, #01BAEF 100%);
+            --text-dark: #333;
+            --text-light: #777;
+            --white: #fff;
+            --shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        /* --- Reset & Base Styles --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f2f5;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            position: relative;
+            width: 900px;
+            height: 550px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        /* --- Left Side (Art & Quotes) --- */
+        .branding-side {
+            width: 50%;
+            background: var(--bg-gradient);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--white);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative Circles */
+        .branding-side::before, .branding-side::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        .branding-side::before { width: 200px; height: 200px; top: -50px; left: -50px; }
+        .branding-side::after { width: 300px; height: 300px; bottom: -100px; right: -50px; }
+
+        .brand-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .brand-subtitle {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .quote-box {
+            margin-top: 20px;
+            font-style: italic;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            animation: fadeInUp 1s ease-in-out;
+        }
+
+        /* --- Right Side (Login Form) --- */
+        .login-side {
+            width: 50%;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-side h1 {
+            color: var(--text-dark);
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
+        .input-group i {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            transition: 0.3s;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #eee;
+            border-radius: 50px;
+            outline: none;
+            font-family: 'Open Sans', sans-serif;
+            transition: 0.3s;
+            background: #f9f9f9;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary-color);
+            background: var(--white);
+        }
+
+        .input-group input:focus + i {
+            color: var(--primary-color);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 50px;
+            background: var(--bg-gradient);
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(32, 191, 85, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(32, 191, 85, 0.4);
+        }
+
+        .signup-link {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .signup-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+            .branding-side {
+                width: 100%;
+                height: 40%;
+                padding: 20px;
+            }
+            .branding-side h2 { font-size: 1.8rem; }
+            .quote-box { display: none; } /* Hide quotes on small screens to save space */
+            
+            .login-side {
+                width: 100%;
+                height: 60%;
+                padding: 30px;
+                border-radius: 30px 30px 0 0;
+                margin-top: -30px; /* Overlap effect */
+                background: var(--white);
+                position: relative;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="login-box">
-        <form id="login-form">
-            <h1>LOG IN</h1>
-            <div class="input-group">
-                <i class="fas fa-user"></i>
-                <input type="text" id="username" placeholder="Username" required>
+
+    <div class="container">
+        <div class="branding-side">
+            <div class="brand-title">TeleMed Connect</div>
+            <div class="brand-subtitle">Healthcare at your fingertips</div>
+            
+            <div class="quote-box">
+                <i class="fas fa-quote-left"></i><br>
+                "Wherever the art of Medicine is loved, there is also a love of Humanity."
+                <br><br>— Hippocrates
             </div>
-            <div class="input-group">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="password" placeholder="Password" required>
-            </div>
-            <button type="submit" class="login-btn">LOG IN</button>
-            <div class="signup-link">
-                <p>Not a member? <a href="/register.html">Sign up now</a></p>
-            </div>
-        </form>
+        </div>
+
+        <div class="login-side">
+            <form id="login-form">
+                <h1>Welcome Back</h1>
+                
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                
+                <button type="submit" class="login-btn">LOG IN</button>
+                
+                <div class="signup-link">
+                    <p>New to TeleMed? <a href="/register.html">Create an Account</a></p>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/login.js"></script>
 </body>
 </html>
-
-<!-- index.html -->
