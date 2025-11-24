@@ -225,6 +225,12 @@
             overflow: hidden;
             background: #111;
         }
+        .shot-preview-image-wrapper img, 
+        .shot-preview-image-wrapper video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
         .preview-controls {
             padding: 30px 20px; /* More vertical padding */
             background: rgba(0, 0, 0, 0.8);
@@ -258,14 +264,14 @@
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
-         .retake-btn:hover {
+        .retake-btn:hover {
             background: rgba(255, 255, 255, 0.3);
         }
         .send-btn {
             background: #4CAF50;
             color: white;
         }
-         .send-btn:hover {
+        .send-btn:hover {
             background: #43A047;
         }
 
@@ -391,22 +397,21 @@
                 background: #ff4444;
             }
 
-            /* ⭐ CHAT MOBILE FIX: FULL SCREEN OVERLAY (Positioning and Flex Layout) */
+            /* CHAT MOBILE FIX: FULL SCREEN OVERLAY */
             #chat-container {
-                display: none; /* Controlled by JS */
+                display: none !important; 
                 position: fixed !important; 
                 top: 0 !important;
                 left: 0 !important; 
                 right: 0 !important;
-                /* bottom: 0 !important; - REMOVED, relying on height: 100vh */
                 width: 100% !important;
-                height: 100vh !important; /* Use viewport height for proper full-screen */
+                height: 100vh !important;
                 background: #f5f5f5 !important;
-                flex-direction: column; /* Main change: Stack items vertically */
+                flex-direction: column;
                 z-index: 9999 !important;
                 transform: none !important; 
                 margin: 0 !important;
-                box-sizing: border-box; /* Ensure padding/border is included in height calculation */
+                box-sizing: border-box;
             }
 
             /* Force display flex when active on mobile (based on JS class toggle) */
@@ -417,7 +422,7 @@
             }
 
             #chat-header {
-                flex-shrink: 0; /* Important: Header should not shrink */
+                flex-shrink: 0;
                 padding: 15px;
                 background: #fff;
                 border-bottom: 1px solid #ddd;
@@ -427,13 +432,14 @@
             }
 
             #chat-box {
-                flex: 1; /* Important: Takes up all available vertical space */
-                overflow-y: auto; /* Allows scrolling of messages */
+                flex: 1;
+                overflow-y: auto;
                 padding: 10px;
+                padding-top: 55px; /* Pushes messages down below the chat header on scroll */
             }
 
             #chat-controls {
-                flex-shrink: 0; /* Important: Controls should not shrink or overflow */
+                flex-shrink: 0;
                 padding: 10px;
                 background: #fff;
                 border-top: 1px solid #ddd;
