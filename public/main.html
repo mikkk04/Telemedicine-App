@@ -380,7 +380,7 @@
                 background: #ff4444;
             }
 
-            /* --- CHAT MOBILE FIX: RESPONSIVE LAYOUT --- */
+            /* --- CHAT MOBILE FIX: RESPONSIVE LAYOUT & BLUE HEADER --- */
             #chat-container {
                 display: none !important; 
                 position: fixed !important; 
@@ -388,7 +388,6 @@
                 left: 0 !important; 
                 right: 0 !important;
                 width: 100% !important;
-                /* Dynamic Height for Mobile Browsers */
                 height: 100% !important; 
                 height: 100dvh !important; 
                 
@@ -405,30 +404,48 @@
                 display: flex !important;
             }
 
+            /* ⭐ FIXED HEADER STYLE (Blue Background, White Text) ⭐ */
             #chat-header {
                 flex-shrink: 0;
                 padding: 15px;
-                /* Add padding for notch support */
                 padding-top: max(15px, env(safe-area-inset-top));
-                background: #fff;
-                border-bottom: 1px solid #ddd;
+                
+                /* Changed to Blue */
+                background: #2196F3; 
+                /* Changed Text to White */
+                color: #ffffff; 
+                
+                /* Removed border, added shadow */
+                border-bottom: none;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
             }
 
+            /* Ensure Buttons inside header are white */
+            #chat-header button {
+                color: #ffffff !important;
+                background: transparent;
+                border: none;
+            }
+
+            #chatPeerNameDisplay {
+                font-weight: 700;
+                font-size: 1.1rem;
+            }
+
             #chat-box {
-                flex: 1; /* Takes all remaining space between header and controls */
+                flex: 1; 
                 overflow-y: auto;
                 padding: 10px;
-                /* Removed the hardcoded padding-top: 55px; relying on Flexbox now */
                 background: #f9f9f9;
             }
 
             #chat-controls {
                 flex-shrink: 0;
                 padding: 10px;
-                /* Add padding for bottom bar support */
                 padding-bottom: max(10px, env(safe-area-inset-bottom));
                 background: #fff;
                 border-top: 1px solid #ddd;
