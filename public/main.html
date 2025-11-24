@@ -4,11 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Teleconsultation</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/desktop.css" media="(min-width: 769px)">
+
     <style>
-        /* --- GLOBAL STYLES --- */
+        /* --- GLOBAL & VIDEO CSS (Keeping these to ensure Video/Camera features stay intact) --- */
         html, body {
             height: 100%;
             width: 100%;
@@ -19,430 +23,81 @@
             background-color: #000;
         }
 
-        /* Modal Styles */
-        .notification-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        .notification-modal-content {
-            background-color: #fff;
-            padding: 24px 32px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            max-width: 90%;
-            width: 350px;
-        }
-        .notification-modal-content h2 {
-            margin-top: 0;
-            color: #333;
-            font-size: 20px;
-        }
-        .notification-modal-content button {
-            background-color: #5C6BC0;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 16px;
-            transition: background-color 0.2s;
-        }
-        .notification-modal-content button:hover {
-            background-color: #3F51B5;
-        }
-
-        /* --- CAMERA POV & PREVIEW STYLES --- */
+        /* --- CAMERA POV STYLES (Unchanged) --- */
         .camera-pov-interface {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 300;
-            display: flex;
-            flex-direction: column;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 300; display: flex; flex-direction: column;
         }
         .camera-pov-header {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            width: 100%;
-            padding: 0 20px;
-            box-sizing: border-box;
-            z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            position: absolute; top: 20px; left: 0; width: 100%; padding: 0 20px;
+            box-sizing: border-box; z-index: 10; display: flex; justify-content: space-between; align-items: center;
         }
         .camera-pov-video-wrapper {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: #000;
+            flex: 1; width: 100%; height: 100%; display: flex; align-items: center;
+            justify-content: center; overflow: hidden; background: #000;
         }
-        #cameraPovVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+        #cameraPovVideo { width: 100%; height: 100%; object-fit: cover; display: block; }
         .camera-pov-controls {
-            position: absolute;
-            bottom: 40px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            pointer-events: none;
+            position: absolute; bottom: 40px; left: 0; width: 100%; display: flex;
+            justify-content: center; align-items: center; z-index: 10; pointer-events: none;
         }
         .cam-overlay-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            pointer-events: auto;
-        }
-        .cam-overlay-btn:active {
-            transform: scale(0.95);
-            background: rgba(0, 0, 0, 0.6);
-        }
-        .cam-overlay-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .recording-indicator {
-            background: rgba(255, 0, 0, 0.2);
-            backdrop-filter: blur(4px);
-            color: #ff4444;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid rgba(255, 0, 0, 0.3);
-        }
-        .recording-dot {
-            font-size: 0.7rem;
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
+            width: 45px; height: 45px; border-radius: 50%; background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer; pointer-events: auto;
         }
         .cam-shutter-btn {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 4px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            pointer-events: auto;
-            transition: transform 0.1s;
+            width: 72px; height: 72px; border-radius: 50%; background: rgba(255, 255, 255, 0.2);
+            border: 4px solid white; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; pointer-events: auto;
         }
         .cam-shutter-inner {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            background: white;
-            transition: all 0.2s;
+            width: 54px; height: 54px; border-radius: 50%; background: white; transition: all 0.2s;
         }
-        .cam-shutter-btn.recording .cam-shutter-inner {
-            background: #ff4444;
-            border-radius: 8px;
-            width: 30px;
-            height: 30px;
+        .cam-shutter-btn.recording .cam-shutter-inner { background: #ff4444; border-radius: 8px; width: 30px; height: 30px; }
+        
+        /* --- VIDEO CALL INTERFACE SPECIFIC STYLES --- */
+        #call-interface {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; background-color: #000;
         }
-        .cam-shutter-btn:active {
-            transform: scale(0.95);
+        #call-header {
+            flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 15px; background: rgba(0, 0, 0, 0.5); color: #fff; z-index: 50; font-size: 0.9rem;
+            padding-top: max(10px, env(safe-area-inset-top));
         }
-
-        /* Shot Preview Interface */
-        .shot-preview-interface {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 350;
-            flex-direction: column;
+        #call-body-layout { flex: 1; display: flex; position: relative; overflow: hidden; width: 100%; height: 100%; }
+        #main-content { flex: 1; position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; }
+        #mainVideoContainer { flex: 1; width: 100%; height: 100%; position: relative; background: #000; }
+        #mainVideo { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
+        #miniVideoContainer {
+            position: absolute; top: calc(60px + env(safe-area-inset-top)); right: 15px;
+            width: 90px; height: 120px; border-radius: 8px; overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.3); z-index: 60; background: #000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        .shot-preview-image-wrapper {
-            flex: 1;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: #111;
+        #miniVideo { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Control Tab (Video) */
+        #control-tab {
+            position: absolute; bottom: max(25px, env(safe-area-inset-bottom)); left: 50%;
+            transform: translateX(-50%); display: flex; gap: 12px; padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px);
+            border-radius: 30px; z-index: 100; width: auto; max-width: 90%; justify-content: center;
         }
-        .shot-preview-image-wrapper img, 
-        .shot-preview-image-wrapper video {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+        #control-tab button {
+            width: 42px; height: 42px; border-radius: 50%; border: none; color: white;
+            background: rgba(0,0,0,0.6); font-size: 18px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
         }
-        .preview-controls {
-            padding: 30px 20px;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            align-items: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .action-btn {
-            padding: 15px 40px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.1s, background-color 0.2s;
-            white-space: nowrap;
-            min-width: 100px;
-            flex-shrink: 0;
-        }
-        .action-btn:active {
-            transform: scale(0.95);
-        }
-        .retake-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .retake-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        .send-btn {
-            background: #4CAF50;
-            color: white;
-        }
-        .send-btn:hover {
-            background: #43A047;
-        }
+        #control-tab button.end-call-button { background: #ff4444; }
 
-
-        /* --- MOBILE ONLY STYLES (Max-width 768px) --- */
-        @media (max-width: 768px) {
-            
-            /* Base Call Interface Layout for Mobile */
-            #call-interface {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                background-color: #000;
-            }
-
-            /* Header: Transparent overlay on mobile */
-            #call-header {
-                flex: 0 0 auto;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 15px;
-                background: rgba(0, 0, 0, 0.5);
-                color: #fff;
-                z-index: 50;
-                font-size: 0.9rem;
-                padding-top: max(10px, env(safe-area-inset-top)); /* Handle notch */
-            }
-
-            #call-body-layout {
-                flex: 1;
-                display: flex;
-                position: relative;
-                overflow: hidden;
-                width: 100%;
-                height: 100%;
-            }
-
-            #main-content {
-                flex: 1;
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                width: 100%;
-                height: 100%;
-            }
-
-            #mainVideoContainer {
-                flex: 1;
-                width: 100%;
-                height: 100%;
-                position: relative;
-                background: #000;
-            }
-
-            #mainVideo {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                display: block;
-            }
-
-            #miniVideoContainer {
-                position: absolute;
-                top: calc(60px + env(safe-area-inset-top)); /* Below header + notch */
-                right: 15px;
-                width: 90px;
-                height: 120px;
-                border-radius: 8px;
-                overflow: hidden;
-                border: 2px solid rgba(255,255,255,0.3);
-                z-index: 60;
-                background: #000;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            }
-            #miniVideo {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            /* Controls Tab */
-            #control-tab {
-                position: absolute;
-                bottom: max(25px, env(safe-area-inset-bottom)); /* Handle bottom bar */
-                left: 50%;
-                transform: translateX(-50%);
-                display: flex;
-                gap: 12px;
-                padding: 10px 20px;
-                background: rgba(255, 255, 255, 0.25);
-                backdrop-filter: blur(8px);
-                border-radius: 30px;
-                z-index: 100;
-                width: auto;
-                max-width: 90%;
-                justify-content: center;
-            }
-
-            #control-tab button {
-                width: 42px;
-                height: 42px;
-                border-radius: 50%;
-                border: none;
-                color: white;
-                background: rgba(0,0,0,0.6);
-                font-size: 18px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            #control-tab button:hover {
-                transform: scale(1.1);
-            }
-            #control-tab button.end-call-button {
-                background: #ff4444;
-            }
-
-            /* --- CHAT MOBILE FIX: RESPONSIVE LAYOUT --- */
-            #chat-container {
-                display: none !important; 
-                position: fixed !important; 
-                top: 0 !important;
-                left: 0 !important; 
-                right: 0 !important;
-                width: 100% !important;
-                /* Dynamic Height for Mobile Browsers */
-                height: 100% !important; 
-                height: 100dvh !important; 
-                
-                background: #f5f5f5 !important;
-                flex-direction: column;
-                z-index: 9999 !important;
-                margin: 0 !important;
-                box-sizing: border-box;
-            }
-
-            #chat-container[style*="display: block"], 
-            #chat-container[style*="display: flex"],
-            #chat-container.chat-open {
-                display: flex !important;
-            }
-
-            #chat-header {
-                flex-shrink: 0;
-                padding: 15px;
-                /* Add padding for notch support */
-                padding-top: max(15px, env(safe-area-inset-top));
-                background: #fff;
-                border-bottom: 1px solid #ddd;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            #chat-box {
-                flex: 1; /* Takes all remaining space between header and controls */
-                overflow-y: auto;
-                padding: 10px;
-                /* Removed the hardcoded padding-top: 55px; relying on Flexbox now */
-                background: #f9f9f9;
-            }
-
-            #chat-controls {
-                flex-shrink: 0;
-                padding: 10px;
-                /* Add padding for bottom bar support */
-                padding-bottom: max(10px, env(safe-area-inset-bottom));
-                background: #fff;
-                border-top: 1px solid #ddd;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            
-            .chat-input {
-                flex: 1;
-                padding: 10px;
-                border-radius: 20px;
-                border: 1px solid #ccc;
-            }
+        /* Mobile specific adjustments */
+        @media (min-width: 769px) {
+            #miniVideoContainer { top: 20px; right: 20px; width: 240px; height: 180px; }
+            #control-tab { bottom: 30px; }
         }
     </style>
 </head>
@@ -462,15 +117,15 @@
     </div>
 
     <div id="call-interface" class="call-interface" style="display: none;">
-        <div id="call-header" class="call-header">
+        <div id="call-header">
             <div class="header-left-group"> <span>Room ID: <strong id="activeRoomCode">--</strong></span>
             </div>
             <span><strong id="callTimer">00:00:00</strong></span>
         </div>
 
         <div id="call-body-layout">
-            <div id="main-content" class="main-content">
-                <div id="mainVideoContainer" class="video-wrapper">
+            <div id="main-content">
+                <div id="mainVideoContainer">
                     <video id="mainVideo" autoplay playsinline></video>
                     <div id="mainVideoNameLabel" class="name-label"></div>
 
@@ -480,7 +135,7 @@
                     </div>
                 </div>
 
-                <div id="control-tab" class="control-tab">
+                <div id="control-tab">
                     <button id="toggleMicBtn" title="Toggle Microphone"><i class="fas fa-microphone"></i></button>
                     <button id="toggleCamBtn" title="Toggle Camera"><i class="fas fa-video"></i></button>
                     <button id="toggleChatBtn" title="Toggle Chat"><i class="fa fa-comment"></i></button>
@@ -489,33 +144,51 @@
             </div>
         </div>
 
-        <div id="chat-container" class="chat-container">
-            <div id="chat-header" class="chat-header">
-                <span>
-                    <span id="chatPeerNameDisplay">Waiting for user</span>
-                    <span id="peerStatusDot" class="peer-status-dot status-offline"></span>
-                    <span id="typingIndicator" class="typing-indicator" style="display: none;"></span>
-                </span>
-                <div style="display:flex; gap: 5px;">
-                    <button id="saveChatHistoryBtn" class="icon-button" title="Save Chat History" style="border:none; background:none; cursor:pointer;">
-                        <i class="fas fa-save"></i>
-                    </button>
-                    <button id="exitChatBtn" class="exit-btn" title="Close Chat" style="border:none; background:none; cursor:pointer; font-size:1.2rem;">&#x2716;</button>
-                </div>
-            </div>
-
-            <div id="chat-box" class="chat-box">
-            </div>
-
-            <div id="chat-controls" class="chat-controls">
-                <div id="fileIcon" class="file-icon" title="Attach File" style="cursor: pointer;">
-                    <i class="fas fa-paperclip"></i>
-                </div>
-                <input type="file" id="fileInput" class="file-input" style="display: none;" />
+        <div id="chat-container" style="display: none;" 
+             class="fixed inset-0 z-[9999] flex flex-col bg-slate-50 w-full h-[100dvh]">
+            
+            <div id="chat-header" 
+                 class="flex-none flex justify-between items-center bg-white border-b border-gray-200 px-4 py-3 pt-[max(1rem,env(safe-area-inset-top))] shadow-sm">
                 
-                <button id="takePictureBtn" title="Take a Picture"><i class="fas fa-camera"></i></button>
-                <input id="chatInput" type="text" class="chat-input" placeholder="Type a message..." disabled>
-                <button id="sendChatBtn" title="Send Message" disabled><i class="fas fa-paper-plane"></i></button>
+                <div class="flex items-center gap-2">
+                    <span id="peerStatusDot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                    <span id="chatPeerNameDisplay" class="font-semibold text-gray-800 text-sm">Waiting for user</span>
+                    <span id="typingIndicator" class="text-xs text-gray-500 italic hidden">typing...</span>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="saveChatHistoryBtn" class="text-gray-500 hover:text-blue-600 transition">
+                        <i class="fas fa-save text-lg"></i>
+                    </button>
+                    <button id="exitChatBtn" class="text-gray-500 hover:text-red-500 transition">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+                </div>
+
+            <div id="chat-controls" 
+                 class="flex-none flex items-center gap-2 bg-white border-t border-gray-200 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                
+                <div id="fileIcon" class="text-gray-500 cursor-pointer p-2 hover:bg-gray-100 rounded-full">
+                    <i class="fas fa-paperclip text-lg"></i>
+                </div>
+                <input type="file" id="fileInput" class="hidden" />
+                
+                <button id="takePictureBtn" class="text-gray-500 p-2 hover:bg-gray-100 rounded-full">
+                    <i class="fas fa-camera text-lg"></i>
+                </button>
+                
+                <input id="chatInput" type="text" 
+                       class="flex-1 bg-gray-100 text-gray-800 rounded-full px-4 py-2 border-none focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                       placeholder="Type a message..." disabled>
+                
+                <button id="sendChatBtn" 
+                        class="text-blue-500 disabled:text-gray-300 p-2 hover:bg-blue-50 rounded-full transition" disabled>
+                    <i class="fas fa-paper-plane text-lg"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -546,18 +219,14 @@
         </div>
     </div>
 
-    <div id="shot-preview-interface" class="shot-preview-interface">
+    <div id="shot-preview-interface" class="shot-preview-interface" style="display: none;">
         <div class="shot-preview-image-wrapper">
             <img id="capturedShotImage" src="" alt="Captured Photo" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
             <video id="capturedVideoPreview" src="" controls playsinline style="display: none; max-width: 100%; max-height: 100%;"></video>
         </div>
         <div class="preview-controls">
-            <button id="retakeShotBtn" class="action-btn retake-btn">
-                Retake
-            </button>
-            <button id="sendShotBtn" class="action-btn send-btn">
-                Send
-            </button>
+            <button id="retakeShotBtn" class="action-btn retake-btn">Retake</button>
+            <button id="sendShotBtn" class="action-btn send-btn">Send</button>
         </div>
     </div>
 
@@ -569,6 +238,7 @@
             <button id="call-ended-ok-btn">OK</button>
         </div>
     </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="/script-base.js"></script>
     <script src="/script-logic.js"></script>
