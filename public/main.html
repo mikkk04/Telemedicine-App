@@ -2,24 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Teleconsultation</title>
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/desktop.css" media="(min-width: 769px)">
     <style>
-        /* --- GLOBAL STYLES (Applies to both Mobile and Desktop) --- */
+        /* --- GLOBAL STYLES --- */
         html, body {
             height: 100%;
             width: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Prevent scroll bounce */
+            overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #000; /* Dark background default */
+            background-color: #000;
         }
 
-        /* Modal Styles (Global) */
+        /* Modal Styles */
         .notification-modal-overlay {
             position: fixed;
             top: 0;
@@ -62,9 +62,7 @@
             background-color: #3F51B5;
         }
 
-        /* --- CAMERA POV & PREVIEW SPECIFIC STYLES --- */
-        
-        /* Camera POV Container */
+        /* --- CAMERA POV & PREVIEW STYLES --- */
         .camera-pov-interface {
             position: fixed;
             top: 0;
@@ -76,8 +74,6 @@
             display: flex;
             flex-direction: column;
         }
-
-        /* Camera Header (Back button, Switch, Indicator) */
         .camera-pov-header {
             position: absolute;
             top: 20px;
@@ -90,8 +86,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
-        /* Video Wrapper */
         .camera-pov-video-wrapper {
             flex: 1;
             width: 100%;
@@ -108,8 +102,6 @@
             object-fit: cover;
             display: block;
         }
-
-        /* Camera Bottom Controls */
         .camera-pov-controls {
             position: absolute;
             bottom: 40px;
@@ -119,10 +111,8 @@
             justify-content: center;
             align-items: center;
             z-index: 10;
-            pointer-events: none; /* Let clicks pass through empty areas */
+            pointer-events: none;
         }
-
-        /* Circular Utility Buttons (Back, Switch) */
         .cam-overlay-btn {
             width: 45px;
             height: 45px;
@@ -147,8 +137,6 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
-
-        /* Recording Indicator */
         .recording-indicator {
             background: rgba(255, 0, 0, 0.2);
             backdrop-filter: blur(4px);
@@ -171,8 +159,6 @@
             50% { opacity: 0.4; }
             100% { opacity: 1; }
         }
-
-        /* Main Shutter Button */
         .cam-shutter-btn {
             width: 72px;
             height: 72px;
@@ -193,7 +179,6 @@
             background: white;
             transition: all 0.2s;
         }
-        /* Style changes when recording */
         .cam-shutter-btn.recording .cam-shutter-inner {
             background: #ff4444;
             border-radius: 8px;
@@ -232,20 +217,20 @@
             object-fit: contain;
         }
         .preview-controls {
-            padding: 30px 20px; /* More vertical padding */
+            padding: 30px 20px;
             background: rgba(0, 0, 0, 0.8);
             display: flex;
             justify-content: center;
-            gap: 30px; /* More space between buttons */
+            gap: 30px;
             align-items: center;
             width: 100%;
             box-sizing: border-box;
         }
         .action-btn {
-            padding: 15px 40px; /* Larger padding for pill shape */
+            padding: 15px 40px;
             border: none;
-            border-radius: 50px; /* Rounder corners */
-            font-size: 1.1rem; /* Slightly larger text */
+            border-radius: 50px;
+            font-size: 1.1rem;
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -260,7 +245,7 @@
             transform: scale(0.95);
         }
         .retake-btn {
-            background: rgba(255, 255, 255, 0.2); /* Semi-transparent white for Retake */
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -302,9 +287,9 @@
                 color: #fff;
                 z-index: 50;
                 font-size: 0.9rem;
+                padding-top: max(10px, env(safe-area-inset-top)); /* Handle notch */
             }
 
-            /* Main Body: Flex container */
             #call-body-layout {
                 flex: 1;
                 display: flex;
@@ -314,7 +299,6 @@
                 height: 100%;
             }
 
-            /* Main Content (Video Area) */
             #main-content {
                 flex: 1;
                 position: relative;
@@ -335,14 +319,13 @@
             #mainVideo {
                 width: 100%;
                 height: 100%;
-                object-fit: cover; /* Fills mobile screen */
+                object-fit: cover;
                 display: block;
             }
 
-            /* Mini Video Mobile Positioning */
             #miniVideoContainer {
                 position: absolute;
-                top: 60px; /* Below header */
+                top: calc(60px + env(safe-area-inset-top)); /* Below header + notch */
                 right: 15px;
                 width: 90px;
                 height: 120px;
@@ -359,10 +342,10 @@
                 object-fit: cover;
             }
 
-            /* Controls: Floating Overlay at Bottom Center */
+            /* Controls Tab */
             #control-tab {
                 position: absolute;
-                bottom: 25px;
+                bottom: max(25px, env(safe-area-inset-bottom)); /* Handle bottom bar */
                 left: 50%;
                 transform: translateX(-50%);
                 display: flex;
@@ -397,7 +380,7 @@
                 background: #ff4444;
             }
 
-            /* CHAT MOBILE FIX: FULL SCREEN OVERLAY */
+            /* --- CHAT MOBILE FIX: RESPONSIVE LAYOUT --- */
             #chat-container {
                 display: none !important; 
                 position: fixed !important; 
@@ -405,16 +388,17 @@
                 left: 0 !important; 
                 right: 0 !important;
                 width: 100% !important;
-                height: 100vh !important;
+                /* Dynamic Height for Mobile Browsers */
+                height: 100% !important; 
+                height: 100dvh !important; 
+                
                 background: #f5f5f5 !important;
                 flex-direction: column;
                 z-index: 9999 !important;
-                transform: none !important; 
                 margin: 0 !important;
                 box-sizing: border-box;
             }
 
-            /* Force display flex when active on mobile (based on JS class toggle) */
             #chat-container[style*="display: block"], 
             #chat-container[style*="display: flex"],
             #chat-container.chat-open {
@@ -424,6 +408,8 @@
             #chat-header {
                 flex-shrink: 0;
                 padding: 15px;
+                /* Add padding for notch support */
+                padding-top: max(15px, env(safe-area-inset-top));
                 background: #fff;
                 border-bottom: 1px solid #ddd;
                 display: flex;
@@ -432,15 +418,18 @@
             }
 
             #chat-box {
-                flex: 1;
+                flex: 1; /* Takes all remaining space between header and controls */
                 overflow-y: auto;
                 padding: 10px;
-                padding-top: 55px; /* Pushes messages down below the chat header on scroll */
+                /* Removed the hardcoded padding-top: 55px; relying on Flexbox now */
+                background: #f9f9f9;
             }
 
             #chat-controls {
                 flex-shrink: 0;
                 padding: 10px;
+                /* Add padding for bottom bar support */
+                padding-bottom: max(10px, env(safe-area-inset-bottom));
                 background: #fff;
                 border-top: 1px solid #ddd;
                 display: flex;
